@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECE Quest Pro | Personal ECE Learning Platform</title>
+  <meta name="description" content="Personal ECE Learning Platform: Timed Quizzes, Interactive Electronics Labs, Formula Hub, and Daily Challenges.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%200%20100%20100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="brand-section" id="brand-home-btn">
+      <span class="brand-title">⚡ ECE QUEST PRO</span>
+      <span class="brand-badge">WEB EDITION</span>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-pill">
+        <span class="label">Level</span>
+        <span class="value" id="hdr-level">1</span>
+      </div>
+      <div class="stat-pill">
+        <span class="label">XP</span>
+        <span class="value" id="hdr-xp">0</span>
+      </div>
+      <div class="stat-pill">
+        <span class="label">Streak</span>
+        <span class="value" id="hdr-streak">0 🔥</span>
+      </div>
+      <button class="home-btn" id="nav-home-btn">⌂ HOME</button>
+    </div>
+  </header>
+
+  <!-- Main Dynamic View Container -->
+  <main class="main-container" id="app-view">
+    <!-- View rendered by app.js -->
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
