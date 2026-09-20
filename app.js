@@ -108,6 +108,19 @@ function saveUserData() {
   const key = APP_DATA_PREFIX + email.toLowerCase();
   localStorage.setItem(key, JSON.stringify(state));
   updateHeaderStats();
+
+  // Cloud sync to Turso DB in background
+  try {
+    fetch(`${API_BASE}/api/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'sync_progress',
+        email: email,
+        progress: state
+      })
+    }).catch(() => {});
+  } catch (e) {}
 }
 
 function getLevel() {
@@ -190,22 +203,26 @@ let registrationState = {
 
 const APPS_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbz7cnSsINtuXzFCaFP1ChLX4ebW6PCDqyqXA9IvQy_oMaV8TB1QaTZQs-O3BhNwYb8VIw/exec';
 
+const API_BASE = (typeof window !== 'undefined' && (window.location.origin.includes('localhost') || window.location.origin.includes('capacitor') || window.location.protocol === 'file:')) 
+  ? 'https://ece-quest-pro.vercel.app' 
+  : '';
+
 // Local storage temporary OTP cache for client-side APK fallback mode
 const CLIENT_OTP_CACHE = new Map();
 
 async function apiSendEmailOtp(email) {
-  // First attempt via backend proxy /auth/send-email-otp
+  // First attempt via backend /api/auth (send)
   try {
-    const res = await fetch('/auth/send-email-otp', {
+    const res = await fetch(`${API_BASE}/api/auth`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email })
+      body: JSON.stringify({ action: 'send', email: email })
     });
     if (res.ok) {
       return await res.json();
     }
   } catch (e) {
-    // If running in packaged mobile APK without hosted /auth endpoint, fallback directly to Apps Script:
+    // Fallback directly to Apps Script if backend unreachable:
     console.log("Using direct Apps Script endpoint for mobile client...");
   }
 
@@ -241,12 +258,12 @@ async function apiSendEmailOtp(email) {
 }
 
 async function apiVerifyEmailOtp(email, otp) {
-  // First attempt via backend proxy
+  // First attempt via backend /api/auth (verify)
   try {
-    const res = await fetch('/auth/verify-email-otp', {
+    const res = await fetch(`${API_BASE}/api/auth`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, otp: otp })
+      body: JSON.stringify({ action: 'verify', email: email, otp: otp })
     });
     if (res.ok) {
       return await res.json();
@@ -415,10 +432,10 @@ function showAuthScreen(mode = 'login') {
 
       // First attempt cloud Turso DB login
       try {
-        const res = await fetch('/auth/login', {
+        const res = await fetch(`${API_BASE}/api/auth`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ action: 'login', email, password })
         });
         const data = await res.json();
         if (data.success) {
@@ -561,12 +578,13 @@ function showAuthScreen(mode = 'login') {
         return;
       }
 
-      // Try to register user in Turso DB
+      // Save user registration in Turso Cloud DB
       try {
-        await fetch('/auth/register', {
+        await fetch(`${API_BASE}/api/auth`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            action: 'register',
             email: registrationState.email,
             password: registrationState.password,
             name: registrationState.name,
@@ -574,7 +592,7 @@ function showAuthScreen(mode = 'login') {
           })
         });
       } catch (err) {
-        console.log("Registered locally:", err);
+        console.log("Turso Cloud DB registration sync failed:", err);
       }
 
       // Email verified! Save user account locally
@@ -641,6 +659,37 @@ function startApp() {
   }
 
   state = loadUserData(currentEmail);
+
+  // Auto-sync existing local registration to Turso cloud DB if needed
+  try {
+    const users = getUsers();
+    const u = users[currentEmail.toLowerCase()];
+    if (u) {
+      fetch(`${API_BASE}/api/auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'register',
+          email: u.email,
+          password: u.password || 'Student@123',
+          name: u.name || state.profile.name || 'Student',
+          college: u.college || state.profile.college || 'College of Engineering'
+        })
+      }).then(() => {
+        // Also sync state
+        fetch(`${API_BASE}/api/auth`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'sync_progress',
+            email: currentEmail,
+            progress: state
+          })
+        }).catch(() => {});
+      }).catch(() => {});
+    }
+  } catch (e) {}
+
   setAppShellVisibility(true);
   setActiveTab('tab-home');
   showHome();

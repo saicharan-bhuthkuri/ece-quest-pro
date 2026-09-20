@@ -27,8 +27,10 @@
     { "source": "/download", "destination": "/app-debug.apk" },
     { "source": "/app", "destination": "/app.html" },
     { "source": "/dashboard", "destination": "/dashboard.html" },
-    { "source": "/auth/:match*", "destination": "/api/auth.js" },
-    { "source": "/api/admin/:match*", "destination": "/api/admin.js" },
+    { "source": "/auth/:path*", "destination": "/api/auth.js" },
+    { "source": "/auth", "destination": "/api/auth.js" },
+    { "source": "/api/auth", "destination": "/api/auth.js" },
+    { "source": "/api/admin/:path*", "destination": "/api/admin.js" },
     { "source": "/api/admin", "destination": "/api/admin.js" }
   ]
 }
