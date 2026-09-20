@@ -291,9 +291,7 @@ function showAuthScreen(mode = 'login') {
       <div class="auth-card">
         <div class="auth-header">
           <div class="auth-logo">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-            </svg>
+            <img src="app-logo.png" alt="ECE" style="width: 100%; height: 100%; object-fit: contain; display: block;">
           </div>
           <h1 class="auth-title">ECE QUEST PRO</h1>
           <p class="auth-subtitle">Professional Engineering Learning & Simulation</p>
