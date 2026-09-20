@@ -4,6 +4,10 @@
   "cleanUrls": true,
   "routes": [
     {
+      "src": "/auth/(.*)",
+      "dest": "/api/auth.js"
+    },
+    {
       "handle": "filesystem"
     },
     {

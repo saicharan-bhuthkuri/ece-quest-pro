@@ -175,11 +175,53 @@ function clearTimer() {
 }
 
 // -------------------------------------------------------------
-// AUTH SCREEN: LOGIN & REGISTRATION
+// AUTH SCREEN: LOGIN & REGISTRATION WITH EMAIL OTP
 // -------------------------------------------------------------
+let otpCooldownTimer = null;
+let otpCooldownSeconds = 0;
+let registrationState = {
+  step: 'details', // 'details' | 'otp'
+  email: '',
+  name: '',
+  password: '',
+  college: '',
+  emailVerified: false
+};
+
+async function apiSendEmailOtp(email) {
+  try {
+    const res = await fetch('/auth/send-email-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    });
+    return await res.json();
+  } catch (e) {
+    return { success: false, error: 'Network error communicating with auth server' };
+  }
+}
+
+async function apiVerifyEmailOtp(email, otp) {
+  try {
+    const res = await fetch('/auth/verify-email-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, otp: otp })
+    });
+    return await res.json();
+  } catch (e) {
+    return { success: false, error: 'Network error communicating with auth server' };
+  }
+}
+
 function showAuthScreen(mode = 'login') {
   clearTimer();
   setAppShellVisibility(false);
+
+  if (mode === 'login') {
+    registrationState.step = 'details';
+    registrationState.emailVerified = false;
+  }
 
   appView.innerHTML = `
     <div class="auth-wrapper">
@@ -201,39 +243,81 @@ function showAuthScreen(mode = 'login') {
 
         <div id="auth-alert-container"></div>
 
-        <form id="auth-form" autocomplete="off">
-          ${mode === 'register' ? `
+        ${mode === 'login' ? `
+          <form id="auth-form-login" autocomplete="off">
+            <div class="form-group">
+              <label>GMAIL / STUDENT EMAIL</label>
+              <input type="email" class="form-input" id="login-email" placeholder="student@gmail.com" required>
+            </div>
+
+            <div class="form-group">
+              <label>PASSWORD</label>
+              <input type="password" class="form-input" id="login-password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 14px; padding: 13px;">
+              SIGN IN TO CONTINUE
+            </button>
+          </form>
+        ` : (registrationState.step === 'details' ? `
+          <form id="auth-form-register" autocomplete="off">
             <div class="form-group">
               <label>FULL NAME</label>
-              <input type="text" class="form-input" id="auth-name" placeholder="e.g. Rushanth B." required>
+              <input type="text" class="form-input" id="reg-name" value="${escapeHtml(registrationState.name)}" placeholder="e.g. Rushanth B." required>
             </div>
-          ` : ''}
 
-          <div class="form-group">
-            <label>STUDENT EMAIL / ID</label>
-            <input type="email" class="form-input" id="auth-email" placeholder="student@college.edu" required>
-          </div>
+            <div class="form-group">
+              <label>GMAIL ADDRESS (OTP WILL BE SENT HERE)</label>
+              <input type="email" class="form-input" id="reg-email" value="${escapeHtml(registrationState.email)}" placeholder="username@gmail.com" required>
+            </div>
 
-          <div class="form-group">
-            <label>PASSWORD</label>
-            <input type="password" class="form-input" id="auth-password" placeholder="••••••••" required>
-          </div>
+            <div class="form-group">
+              <label>CREATE PASSWORD</label>
+              <input type="password" class="form-input" id="reg-password" placeholder="At least 4 characters" required>
+            </div>
 
-          ${mode === 'register' ? `
             <div class="form-group">
               <label>CONFIRM PASSWORD</label>
-              <input type="password" class="form-input" id="auth-confirm" placeholder="••••••••" required>
+              <input type="password" class="form-input" id="reg-confirm" placeholder="Repeat password" required>
             </div>
+
             <div class="form-group">
               <label>COLLEGE / INSTITUTION</label>
-              <input type="text" class="form-input" id="auth-college" placeholder="Trinity College of Engineering and Technology">
+              <input type="text" class="form-input" id="reg-college" value="${escapeHtml(registrationState.college)}" placeholder="Trinity College of Engineering and Technology">
             </div>
-          ` : ''}
 
-          <button type="submit" class="btn btn-primary" id="btn-submit-auth" style="width: 100%; margin-top: 14px; padding: 13px;">
-            ${mode === 'login' ? 'SIGN IN TO CONTINUE' : 'COMPLETE REGISTRATION'}
-          </button>
-        </form>
+            <button type="submit" class="btn btn-primary" id="btn-send-otp" style="width: 100%; margin-top: 14px; padding: 13px;">
+              VERIFY EMAIL & CONTINUE →
+            </button>
+          </form>
+        ` : `
+          <!-- OTP Verification Step -->
+          <div class="otp-container">
+            <div style="text-align: center; margin-bottom: 18px;">
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan); margin-bottom: 4px;">ENTER 6-DIGIT CODE</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                A verification code was sent to<br><b style="color: #FFF;">${escapeHtml(registrationState.email)}</b>
+              </div>
+            </div>
+
+            <form id="auth-form-otp" autocomplete="off">
+              <div class="form-group">
+                <input type="text" class="form-input" id="reg-otp" maxlength="6" pattern="[0-9]{6}" placeholder="• • • • • •" style="text-align: center; font-size: 1.6rem; letter-spacing: 12px; font-family: var(--font-mono); font-weight: 800;" required autofocus>
+              </div>
+
+              <button type="submit" class="btn btn-primary" id="btn-verify-otp" style="width: 100%; margin-top: 8px; padding: 13px;">
+                CONFIRM & FINISH REGISTRATION
+              </button>
+            </form>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; font-size: 0.8rem;">
+              <button class="btn" id="btn-back-reg-details" style="padding: 6px 12px; font-size: 0.75rem;">← EDIT DETAILS</button>
+              <button class="btn" id="btn-resend-otp" style="padding: 6px 12px; font-size: 0.75rem;" ${otpCooldownSeconds > 0 ? 'disabled' : ''}>
+                ${otpCooldownSeconds > 0 ? `RESEND (${otpCooldownSeconds}s)` : 'RESEND OTP'}
+              </button>
+            </div>
+          </div>
+        `)}
 
         <div class="auth-footer">
           ${mode === 'login' 
@@ -254,16 +338,16 @@ function showAuthScreen(mode = 'login') {
   const linkGotoLogin = document.getElementById('link-goto-login');
   if (linkGotoLogin) linkGotoLogin.onclick = () => showAuthScreen('login');
 
-  const authForm = document.getElementById('auth-form');
-  authForm.onsubmit = (e) => {
-    e.preventDefault();
-    const alertBox = document.getElementById('auth-alert-container');
-    const email = document.getElementById('auth-email').value.trim().toLowerCase();
-    const password = document.getElementById('auth-password').value;
+  // Handle Login Submit
+  const loginForm = document.getElementById('auth-form-login');
+  if (loginForm) {
+    loginForm.onsubmit = (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('auth-alert-container');
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      const password = document.getElementById('login-password').value;
 
-    const users = getUsers();
-
-    if (mode === 'login') {
+      const users = getUsers();
       if (!users[email]) {
         alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} No account found with this email. Please register first.</div>`;
         return;
@@ -279,12 +363,26 @@ function showAuthScreen(mode = 'login') {
       saveUserData();
       showToast(`Welcome back, ${state.profile.name}!`);
       startApp();
-    } else {
-      // Register Mode
-      const name = document.getElementById('auth-name').value.trim();
-      const confirm = document.getElementById('auth-confirm').value;
-      const college = document.getElementById('auth-college').value.trim() || "College of Engineering";
+    };
+  }
 
+  // Handle Register Step 1: Submit Details & Send OTP
+  const regForm = document.getElementById('auth-form-register');
+  if (regForm) {
+    regForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('auth-alert-container');
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim().toLowerCase();
+      const password = document.getElementById('reg-password').value;
+      const confirm = document.getElementById('reg-confirm').value;
+      const college = document.getElementById('reg-college').value.trim() || "College of Engineering";
+
+      const users = getUsers();
+      if (users[email]) {
+        alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} An account with this email already exists. Please login instead.</div>`;
+        return;
+      }
       if (password.length < 4) {
         alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} Password must be at least 4 characters long.</div>`;
         return;
@@ -293,31 +391,129 @@ function showAuthScreen(mode = 'login') {
         alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} Passwords do not match.</div>`;
         return;
       }
-      if (users[email]) {
-        alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} An account with this email already exists. Please login.</div>`;
+
+      registrationState.name = name;
+      registrationState.email = email;
+      registrationState.password = password;
+      registrationState.college = college;
+
+      const sendBtn = document.getElementById('btn-send-otp');
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'SENDING OTP CODE...';
+      }
+
+      const res = await apiSendEmailOtp(email);
+      if (!res.success) {
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'VERIFY EMAIL & CONTINUE →';
+        }
+        alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} ${escapeHtml(res.error || 'Failed to send OTP')}</div>`;
         return;
       }
 
-      // Save user credential
-      users[email] = {
-        email: email,
-        name: name,
-        password: password,
-        college: college,
+      // Start Resend Cooldown Timer (60s)
+      startOtpCooldown(res.cooldownSeconds || 60);
+
+      registrationState.step = 'otp';
+      showAuthScreen('register');
+      showToast("OTP sent to your email!");
+    };
+  }
+
+  // Handle Register Step 2: OTP Verification
+  const otpForm = document.getElementById('auth-form-otp');
+  if (otpForm) {
+    const btnBack = document.getElementById('btn-back-reg-details');
+    if (btnBack) {
+      btnBack.onclick = () => {
+        registrationState.step = 'details';
+        showAuthScreen('register');
+      };
+    }
+
+    const btnResend = document.getElementById('btn-resend-otp');
+    if (btnResend) {
+      btnResend.onclick = async () => {
+        btnResend.disabled = true;
+        const res = await apiSendEmailOtp(registrationState.email);
+        const alertBox = document.getElementById('auth-alert-container');
+        if (res.success) {
+          startOtpCooldown(res.cooldownSeconds || 60);
+          alertBox.innerHTML = `<div class="auth-alert success">${ICONS.check} New verification code dispatched.</div>`;
+        } else {
+          btnResend.disabled = false;
+          alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} ${escapeHtml(res.error || 'Failed to resend')}</div>`;
+        }
+      };
+    }
+
+    otpForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('auth-alert-container');
+      const otp = document.getElementById('reg-otp').value.trim();
+
+      const verifyBtn = document.getElementById('btn-verify-otp');
+      if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'VERIFYING CODE...';
+      }
+
+      const res = await apiVerifyEmailOtp(registrationState.email, otp);
+      if (!res.success) {
+        if (verifyBtn) {
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = 'CONFIRM & FINISH REGISTRATION';
+        }
+        alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} ${escapeHtml(res.error || 'Invalid OTP')}</div>`;
+        return;
+      }
+
+      // Email verified! Save user account
+      const users = getUsers();
+      users[registrationState.email] = {
+        email: registrationState.email,
+        name: registrationState.name,
+        password: registrationState.password,
+        college: registrationState.college,
+        emailVerified: true,
         createdAt: new Date().toISOString()
       };
       saveUsers(users);
 
-      // Create user initial state
-      setCurrentUser(email);
-      state = getDefaultUserData(name, email);
-      state.profile.college = college;
+      // Create new user profile data
+      setCurrentUser(registrationState.email);
+      state = getDefaultUserData(registrationState.name, registrationState.email);
+      state.profile.college = registrationState.college;
       saveUserData();
 
-      showToast("Account created successfully!");
+      showToast("Email verified and account created successfully!");
       startApp();
+    };
+  }
+}
+
+function startOtpCooldown(seconds) {
+  if (otpCooldownTimer) clearInterval(otpCooldownTimer);
+  otpCooldownSeconds = seconds;
+  otpCooldownTimer = setInterval(() => {
+    otpCooldownSeconds--;
+    const btnResend = document.getElementById('btn-resend-otp');
+    if (btnResend) {
+      if (otpCooldownSeconds > 0) {
+        btnResend.disabled = true;
+        btnResend.textContent = `RESEND (${otpCooldownSeconds}s)`;
+      } else {
+        btnResend.disabled = false;
+        btnResend.textContent = 'RESEND OTP';
+      }
     }
-  };
+    if (otpCooldownSeconds <= 0) {
+      clearInterval(otpCooldownTimer);
+      otpCooldownTimer = null;
+    }
+  }, 1000);
 }
 
 function handleLogout() {
