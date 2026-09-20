@@ -1,6 +1,8 @@
 import { QUESTIONS, LESSONS, FORMULAS, BADGES_DEF } from './data.js';
 
-const STORAGE_KEY = 'ece_quest_pro_app_data';
+const USERS_STORAGE_KEY = 'ece_quest_pro_users';
+const CURRENT_USER_KEY = 'ece_quest_pro_current_user';
+const APP_DATA_PREFIX = 'ece_quest_pro_data_';
 
 // SVG Icon Helpers for clean modern UI
 const ICONS = {
@@ -17,14 +19,44 @@ const ICONS = {
   arrowRight: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`,
   arrowLeft: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>`,
   clock: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
-  refresh: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`
+  lock: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
+  mail: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`,
+  logout: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>`
 };
 
-// Default State
-function getDefaultData() {
+// -------------------------------------------------------------
+// USER AUTHENTICATION & MULTI-USER DATA STORE
+// -------------------------------------------------------------
+function getUsers() {
+  try {
+    return JSON.parse(localStorage.getItem(USERS_STORAGE_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveUsers(users) {
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+}
+
+function getCurrentUser() {
+  return localStorage.getItem(CURRENT_USER_KEY);
+}
+
+function setCurrentUser(email) {
+  if (email) {
+    localStorage.setItem(CURRENT_USER_KEY, email);
+  } else {
+    localStorage.removeItem(CURRENT_USER_KEY);
+  }
+}
+
+// User state
+function getDefaultUserData(name = "Student", email = "") {
   return {
     profile: {
-      name: "Rushanth",
+      name: name,
+      email: email,
       college: "Trinity College of Engineering and Technology",
       branch: "ECE",
       year: "2nd Year"
@@ -44,35 +76,47 @@ function getDefaultData() {
   };
 }
 
-let state = loadData();
+let state = null;
 let quizTimerInterval = null;
 
-function loadData() {
+function loadUserData(email) {
+  if (!email) return null;
+  const key = APP_DATA_PREFIX + email.toLowerCase();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('ece_quest_pro_web_data');
-    if (!raw) return getDefaultData();
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+      const users = getUsers();
+      const u = users[email.toLowerCase()];
+      const def = getDefaultUserData(u ? u.name : "Student", email);
+      return def;
+    }
     const parsed = JSON.parse(raw);
-    const def = getDefaultData();
+    const def = getDefaultUserData();
     return {
       ...def,
       ...parsed,
       profile: { ...def.profile, ...(parsed.profile || {}) }
     };
   } catch (e) {
-    return getDefaultData();
+    return getDefaultUserData("Student", email);
   }
 }
 
-function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+function saveUserData() {
+  const email = getCurrentUser();
+  if (!email || !state) return;
+  const key = APP_DATA_PREFIX + email.toLowerCase();
+  localStorage.setItem(key, JSON.stringify(state));
   updateHeaderStats();
 }
 
 function getLevel() {
+  if (!state) return 1;
   return Math.floor(state.xp / 500) + 1;
 }
 
 function getLevelXP() {
+  if (!state) return 0;
   return state.xp % 500;
 }
 
@@ -91,6 +135,7 @@ function showToast(msg) {
 }
 
 function checkBadges() {
+  if (!state) return;
   let newUnlock = false;
   BADGES_DEF.forEach(b => {
     if (!state.badges.includes(b.id) && b.cond(state)) {
@@ -99,18 +144,28 @@ function checkBadges() {
       newUnlock = true;
     }
   });
-  if (newUnlock) saveData();
+  if (newUnlock) saveUserData();
 }
 
 // Update Top Bar
 function updateHeaderStats() {
-  document.getElementById('hdr-level').textContent = getLevel();
-  document.getElementById('hdr-xp').textContent = state.xp;
-  document.getElementById('hdr-streak').textContent = state.streak;
+  const levelEl = document.getElementById('hdr-level');
+  const xpEl = document.getElementById('hdr-xp');
+  const streakEl = document.getElementById('hdr-streak');
+  if (levelEl) levelEl.textContent = getLevel();
+  if (xpEl) xpEl.textContent = state ? state.xp : 0;
+  if (streakEl) streakEl.textContent = state ? state.streak : 0;
 }
 
 // App Container
 const appView = document.getElementById('app-view');
+const appHeader = document.querySelector('.app-header');
+const mobileNav = document.getElementById('mobile-nav');
+
+function setAppShellVisibility(visible) {
+  if (appHeader) appHeader.style.display = visible ? 'flex' : 'none';
+  if (mobileNav) mobileNav.style.display = visible ? 'flex' : 'none';
+}
 
 function clearTimer() {
   if (quizTimerInterval) {
@@ -120,9 +175,183 @@ function clearTimer() {
 }
 
 // -------------------------------------------------------------
+// AUTH SCREEN: LOGIN & REGISTRATION
+// -------------------------------------------------------------
+function showAuthScreen(mode = 'login') {
+  clearTimer();
+  setAppShellVisibility(false);
+
+  appView.innerHTML = `
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <h1 class="auth-title">ECE QUEST PRO</h1>
+          <p class="auth-subtitle">Professional Engineering Learning & Simulation</p>
+        </div>
+
+        <div class="auth-tabs">
+          <button class="auth-tab-btn ${mode === 'login' ? 'active' : ''}" id="tab-switch-login">SIGN IN</button>
+          <button class="auth-tab-btn ${mode === 'register' ? 'active' : ''}" id="tab-switch-register">CREATE ACCOUNT</button>
+        </div>
+
+        <div id="auth-alert-container"></div>
+
+        <form id="auth-form" autocomplete="off">
+          ${mode === 'register' ? `
+            <div class="form-group">
+              <label>FULL NAME</label>
+              <input type="text" class="form-input" id="auth-name" placeholder="e.g. Rushanth B." required>
+            </div>
+          ` : ''}
+
+          <div class="form-group">
+            <label>STUDENT EMAIL / ID</label>
+            <input type="email" class="form-input" id="auth-email" placeholder="student@college.edu" required>
+          </div>
+
+          <div class="form-group">
+            <label>PASSWORD</label>
+            <input type="password" class="form-input" id="auth-password" placeholder="••••••••" required>
+          </div>
+
+          ${mode === 'register' ? `
+            <div class="form-group">
+              <label>CONFIRM PASSWORD</label>
+              <input type="password" class="form-input" id="auth-confirm" placeholder="••••••••" required>
+            </div>
+            <div class="form-group">
+              <label>COLLEGE / INSTITUTION</label>
+              <input type="text" class="form-input" id="auth-college" placeholder="Trinity College of Engineering and Technology">
+            </div>
+          ` : ''}
+
+          <button type="submit" class="btn btn-primary" id="btn-submit-auth" style="width: 100%; margin-top: 14px; padding: 13px;">
+            ${mode === 'login' ? 'SIGN IN TO CONTINUE' : 'COMPLETE REGISTRATION'}
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          ${mode === 'login' 
+            ? `New student? <span class="auth-link" id="link-goto-register">Create an account</span>`
+            : `Already registered? <span class="auth-link" id="link-goto-login">Sign in</span>`
+          }
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('tab-switch-login').onclick = () => showAuthScreen('login');
+  document.getElementById('tab-switch-register').onclick = () => showAuthScreen('register');
+
+  const linkGotoReg = document.getElementById('link-goto-register');
+  if (linkGotoReg) linkGotoReg.onclick = () => showAuthScreen('register');
+
+  const linkGotoLogin = document.getElementById('link-goto-login');
+  if (linkGotoLogin) linkGotoLogin.onclick = () => showAuthScreen('login');
+
+  const authForm = document.getElementById('auth-form');
+  authForm.onsubmit = (e) => {
+    e.preventDefault();
+    const alertBox = document.getElementById('auth-alert-container');
+    const email = document.getElementById('auth-email').value.trim().toLowerCase();
+    const password = document.getElementById('auth-password').value;
+
+    const users = getUsers();
+
+    if (mode === 'login') {
+      if (!users[email]) {
+        alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} No account found with this email. Please register first.</div>`;
+        return;
+      }
+      if (users[email].password !== password) {
+        alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} Incorrect password. Please try again.</div>`;
+        return;
+      }
+
+      // Success Login
+      setCurrentUser(email);
+      state = loadUserData(email);
+      saveUserData();
+      showToast(`Welcome back, ${state.profile.name}!`);
+      startApp();
+    } else {
+      // Register Mode
+      const name = document.getElementById('auth-name').value.trim();
+      const confirm = document.getElementById('auth-confirm').value;
+      const college = document.getElementById('auth-college').value.trim() || "College of Engineering";
+
+      if (password.length < 4) {
+        alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} Password must be at least 4 characters long.</div>`;
+        return;
+      }
+      if (password !== confirm) {
+        alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} Passwords do not match.</div>`;
+        return;
+      }
+      if (users[email]) {
+        alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} An account with this email already exists. Please login.</div>`;
+        return;
+      }
+
+      // Save user credential
+      users[email] = {
+        email: email,
+        name: name,
+        password: password,
+        college: college,
+        createdAt: new Date().toISOString()
+      };
+      saveUsers(users);
+
+      // Create user initial state
+      setCurrentUser(email);
+      state = getDefaultUserData(name, email);
+      state.profile.college = college;
+      saveUserData();
+
+      showToast("Account created successfully!");
+      startApp();
+    }
+  };
+}
+
+function handleLogout() {
+  setCurrentUser(null);
+  state = null;
+  showToast("Logged out successfully.");
+  showAuthScreen('login');
+}
+
+// -------------------------------------------------------------
+// APP INITIALIZATION & ROUTING
+// -------------------------------------------------------------
+function startApp() {
+  const currentEmail = getCurrentUser();
+  if (!currentEmail) {
+    showAuthScreen('login');
+    return;
+  }
+
+  state = loadUserData(currentEmail);
+  setAppShellVisibility(true);
+  setActiveTab('tab-home');
+  showHome();
+}
+
+// -------------------------------------------------------------
 // NAVIGATION: HOME
 // -------------------------------------------------------------
 export function showHome() {
+  if (!getCurrentUser()) {
+    showAuthScreen('login');
+    return;
+  }
+
   clearTimer();
   updateHeaderStats();
 
@@ -134,7 +363,7 @@ export function showHome() {
     <div class="hero-section">
       <div class="hero-tag">ENGINEERING PLATFORM</div>
       <h1 class="hero-title">${escapeHtml(state.profile.name)}</h1>
-      <p class="hero-subtitle">Department of Electronics & Communication</p>
+      <p class="hero-subtitle">${escapeHtml(state.profile.college)}</p>
     </div>
 
     <div class="level-bar-card">
@@ -247,6 +476,7 @@ let activeQuizXP = 0;
 let activeTimerSeconds = 30;
 
 function showQuizSetup() {
+  if (!getCurrentUser()) { showAuthScreen('login'); return; }
   clearTimer();
   const topics = [...new Set(QUESTIONS.map(q => q.topic))];
 
@@ -395,7 +625,7 @@ function handleAnswerSelect(selectedIndex) {
   } else {
     state.streak = 0;
   }
-  saveData();
+  saveUserData();
   checkBadges();
 
   // Highlight buttons
@@ -448,7 +678,7 @@ function finishQuiz() {
     correct: activeQuizCorrect,
     total: total
   });
-  saveData();
+  saveUserData();
   checkBadges();
 
   appView.innerHTML = `
@@ -479,6 +709,7 @@ function finishQuiz() {
 // DAILY CHALLENGE
 // -------------------------------------------------------------
 function startDaily() {
+  if (!getCurrentUser()) { showAuthScreen('login'); return; }
   clearTimer();
   const today = new Date().toISOString().split('T')[0];
 
@@ -486,7 +717,7 @@ function startDaily() {
     state.daily_date = today;
     state.daily_done = false;
     state.daily_score = 0;
-    saveData();
+    saveUserData();
   }
 
   if (state.daily_done) {
@@ -549,7 +780,7 @@ function renderDailyQuestion() {
         state.streak = 0;
         showToast(`Incorrect! Answer: ${q.options[q.answer]}`);
       }
-      saveData();
+      saveUserData();
       checkBadges();
 
       activeQuizIndex++;
@@ -558,7 +789,7 @@ function renderDailyQuestion() {
       } else {
         state.daily_done = true;
         state.daily_score = Math.round((activeQuizCorrect / activeQuizQuestions.length) * 100);
-        saveData();
+        saveUserData();
         setActiveTab('tab-home');
         showHome();
       }
@@ -570,6 +801,7 @@ function renderDailyQuestion() {
 // LEARN HUB
 // -------------------------------------------------------------
 function showLearn() {
+  if (!getCurrentUser()) { showAuthScreen('login'); return; }
   clearTimer();
   const lessonEntries = Object.entries(LESSONS);
 
@@ -637,7 +869,7 @@ function renderLessonDetails(lessonName) {
     if (!state.completed_lessons.includes(lessonName)) {
       state.completed_lessons.push(lessonName);
       state.xp += 50;
-      saveData();
+      saveUserData();
       checkBadges();
       showToast(`+50 XP Earned for completing ${lessonName}!`);
       renderLessonDetails(lessonName);
@@ -649,6 +881,7 @@ function renderLessonDetails(lessonName) {
 // ECE LAB
 // -------------------------------------------------------------
 function showLab() {
+  if (!getCurrentUser()) { showAuthScreen('login'); return; }
   clearTimer();
 
   appView.innerHTML = `
@@ -1034,6 +1267,7 @@ function labRc() {
 // PROGRESS & STATS
 // -------------------------------------------------------------
 function showProgress() {
+  if (!getCurrentUser()) { showAuthScreen('login'); return; }
   clearTimer();
   const accuracy = state.total_questions 
     ? Math.round((state.correct_answers / state.total_questions) * 100) 
@@ -1092,6 +1326,7 @@ function showProgress() {
 // FORMULAS HUB
 // -------------------------------------------------------------
 function showFormulas() {
+  if (!getCurrentUser()) { showAuthScreen('login'); return; }
   clearTimer();
 
   appView.innerHTML = `
@@ -1138,6 +1373,7 @@ function renderFormulaItems(items) {
 // BADGES
 // -------------------------------------------------------------
 function showBadges() {
+  if (!getCurrentUser()) { showAuthScreen('login'); return; }
   clearTimer();
 
   appView.innerHTML = `
@@ -1167,19 +1403,35 @@ function showBadges() {
 }
 
 // -------------------------------------------------------------
-// PROFILE
+// PROFILE & LOGOUT
 // -------------------------------------------------------------
 function showProfile() {
+  if (!getCurrentUser()) { showAuthScreen('login'); return; }
   clearTimer();
+
+  const userInitials = (state.profile.name || "ST")
+    .split(" ")
+    .map(n => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   appView.innerHTML = `
     <div class="page-header">
-      <div class="section-tag">SETTINGS</div>
+      <div class="section-tag">ACCOUNT SETTINGS</div>
       <h2 class="page-title">Student Profile</h2>
-      <p class="page-subtitle">Personal academic credentials and local data</p>
+      <p class="page-subtitle">Manage personal academic credentials and authentication</p>
     </div>
 
     <div class="content-box" style="max-width: 520px; margin: 0 auto;">
+      <div class="user-badge-profile">
+        <div class="user-avatar-circle">${userInitials}</div>
+        <div>
+          <div style="font-weight: 800; font-size: 1.1rem; color: #FFF;">${escapeHtml(state.profile.name)}</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">${escapeHtml(getCurrentUser())}</div>
+        </div>
+      </div>
+
       <div class="form-group">
         <label>FULL NAME</label>
         <input type="text" class="form-input" id="prof-name" value="${escapeHtml(state.profile.name)}">
@@ -1197,9 +1449,14 @@ function showProfile() {
         <input type="text" class="form-input" id="prof-year" value="${escapeHtml(state.profile.year)}">
       </div>
 
-      <button class="btn btn-primary" id="btn-save-profile" style="width: 100%; margin-top: 10px;">
-        SAVE CHANGES
-      </button>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-primary" id="btn-save-profile" style="flex: 1;">
+          SAVE CHANGES
+        </button>
+        <button class="btn" id="btn-logout" style="border-color: var(--rose); color: var(--rose);">
+          ${ICONS.logout} SIGN OUT
+        </button>
+      </div>
     </div>
   `;
 
@@ -1208,10 +1465,14 @@ function showProfile() {
     state.profile.college = document.getElementById('prof-college').value.trim() || "College";
     state.profile.branch = document.getElementById('prof-branch').value.trim() || "ECE";
     state.profile.year = document.getElementById('prof-year').value.trim() || "Year";
-    saveData();
+    saveUserData();
     showToast("Profile updated successfully!");
     setActiveTab('tab-home');
     showHome();
+  };
+
+  document.getElementById('btn-logout').onclick = () => {
+    handleLogout();
   };
 }
 
@@ -1267,5 +1528,5 @@ document.getElementById('brand-home-btn').onclick = () => { setActiveTab('tab-ho
 const navHomeBtn = document.getElementById('nav-home-btn');
 if (navHomeBtn) navHomeBtn.onclick = () => { setActiveTab('tab-home'); showHome(); };
 
-// Initialize
-showHome();
+// Initialize App: Check Auth First
+startApp();
