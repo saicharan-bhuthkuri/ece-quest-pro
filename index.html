@@ -312,5 +312,21 @@
     © 2026 ECE Quest Pro • Trinity College of Engineering and Technology • Department of ECE
   </footer>
 
+  <script>
+    document.getElementById('apk-download-btn').addEventListener('click', function(e) {
+      // Primary: GitHub Releases Direct APK
+      // If browser blocks cross-origin download attribute, this ensures navigation/download starts
+      const targetUrl = this.href;
+      setTimeout(function() {
+        // Backup direct trigger
+        const a = document.createElement('a');
+        a.href = '/app-debug.apk?t=' + Date.now();
+        a.download = 'ECE-Quest-Pro.apk';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }, 500);
+    });
+  </script>
 </body>
 </html>

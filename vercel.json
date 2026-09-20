@@ -1,10 +1,30 @@
 {
   "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/(.*)\\.apk",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/vnd.android.package-archive"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "attachment; filename=\"ECE-Quest-Pro.apk\""
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
   "redirects": [
     { "source": "/landing", "destination": "/", "permanent": true },
     { "source": "/landing.html", "destination": "/", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/download", "destination": "/app-debug.apk" },
     { "source": "/app", "destination": "/app.html" },
     { "source": "/dashboard", "destination": "/dashboard.html" },
     { "source": "/auth/:match*", "destination": "/api/auth.js" },
