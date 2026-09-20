@@ -8,3 +8,5 @@ android/app/build
 android/app/src/main/assets/public
 .env
 .env.*
+
+.vercel
