@@ -1,6 +1,24 @@
 import { QUESTIONS, LESSONS, FORMULAS, BADGES_DEF } from './data.js';
 
-const STORAGE_KEY = 'ece_quest_pro_web_data';
+const STORAGE_KEY = 'ece_quest_pro_app_data';
+
+// SVG Icon Helpers for clean modern UI
+const ICONS = {
+  play: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"></polygon></svg>`,
+  book: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`,
+  flask: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31L4 20h16l-6-10.69V2h-4z"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line></svg>`,
+  chart: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+  formula: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6l6 16h4"></path><line x1="4" y1="12" x2="14" y2="12"></line></svg>`,
+  calendar: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`,
+  award: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>`,
+  user: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
+  check: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+  cross: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
+  arrowRight: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`,
+  arrowLeft: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>`,
+  clock: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+  refresh: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`
+};
 
 // Default State
 function getDefaultData() {
@@ -31,7 +49,7 @@ let quizTimerInterval = null;
 
 function loadData() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('ece_quest_pro_web_data');
     if (!raw) return getDefaultData();
     const parsed = JSON.parse(raw);
     const def = getDefaultData();
@@ -77,7 +95,7 @@ function checkBadges() {
   BADGES_DEF.forEach(b => {
     if (!state.badges.includes(b.id) && b.cond(state)) {
       state.badges.push(b.id);
-      showToast(`🏆 <b>BADGE UNLOCKED!</b><br>${b.icon} ${b.id}`);
+      showToast(`<div class="toast-title">ACHIEVEMENT UNLOCKED</div><div>${b.id}</div>`);
       newUnlock = true;
     }
   });
@@ -88,7 +106,7 @@ function checkBadges() {
 function updateHeaderStats() {
   document.getElementById('hdr-level').textContent = getLevel();
   document.getElementById('hdr-xp').textContent = state.xp;
-  document.getElementById('hdr-streak').textContent = `${state.streak} 🔥`;
+  document.getElementById('hdr-streak').textContent = state.streak;
 }
 
 // App Container
@@ -114,89 +132,109 @@ export function showHome() {
 
   appView.innerHTML = `
     <div class="hero-section">
-      <h1 class="hero-title">Welcome back, ${escapeHtml(state.profile.name)} 👋</h1>
-      <p class="hero-subtitle">Learn • Practice • Build • Master</p>
+      <div class="hero-tag">ENGINEERING PLATFORM</div>
+      <h1 class="hero-title">${escapeHtml(state.profile.name)}</h1>
+      <p class="hero-subtitle">Department of Electronics & Communication</p>
     </div>
 
     <div class="level-bar-card">
       <div class="level-bar-header">
-        <span style="color: var(--cyan)">LEVEL ${getLevel()}</span>
-        <span style="color: var(--muted)">${getLevelXP()} / 500 XP</span>
+        <span class="level-badge">RANK ${getLevel()}</span>
+        <span class="level-xp-text">${getLevelXP()} / 500 XP</span>
       </div>
       <div class="level-track">
-        <div class="level-fill" style="width: ${Math.max(2, getLevelPercent())}%"></div>
+        <div class="level-fill" style="width: ${Math.max(3, getLevelPercent())}%"></div>
       </div>
     </div>
 
     <!-- Primary Actions Grid -->
     <div class="action-grid-primary">
-      <div class="action-card" id="btn-action-quiz">
-        <div class="action-icon" style="color: var(--accent)">▶</div>
-        <div class="action-title">START QUIZ</div>
-        <div class="action-desc">Challenge your ECE knowledge with timed questions</div>
+      <div class="action-card card-glow-cyan" id="btn-action-quiz">
+        <div class="action-card-top">
+          <div class="action-icon-circle icon-cyan">${ICONS.play}</div>
+          <span class="card-arrow">${ICONS.arrowRight}</span>
+        </div>
+        <div class="action-title">Start Quiz</div>
+        <div class="action-desc">Timed questions across 10 core ECE modules</div>
       </div>
-      <div class="action-card" id="btn-action-learn">
-        <div class="action-icon">📚</div>
-        <div class="action-title">LEARN</div>
-        <div class="action-desc">Explore 10 curated core ECE syllabus topics</div>
+
+      <div class="action-card card-glow-blue" id="btn-action-learn">
+        <div class="action-card-top">
+          <div class="action-icon-circle icon-blue">${ICONS.book}</div>
+          <span class="card-arrow">${ICONS.arrowRight}</span>
+        </div>
+        <div class="action-title">Learn Hub</div>
+        <div class="action-desc">Curated syllabus theory, notes & core concepts</div>
       </div>
-      <div class="action-card" id="btn-action-lab">
-        <div class="action-icon">🧪</div>
-        <div class="action-title">ECE LAB</div>
-        <div class="action-desc">Interactive virtual experiments & simulators</div>
+
+      <div class="action-card card-glow-emerald" id="btn-action-lab">
+        <div class="action-card-top">
+          <div class="action-icon-circle icon-emerald">${ICONS.flask}</div>
+          <span class="card-arrow">${ICONS.arrowRight}</span>
+        </div>
+        <div class="action-title">Virtual Lab</div>
+        <div class="action-desc">Interactive circuit, logic gate & sensor labs</div>
       </div>
-      <div class="action-card" id="btn-action-progress">
-        <div class="action-icon">📊</div>
-        <div class="action-title">MY JOURNEY</div>
-        <div class="action-desc">View accuracy, recent quiz scores & history</div>
+
+      <div class="action-card card-glow-purple" id="btn-action-progress">
+        <div class="action-card-top">
+          <div class="action-icon-circle icon-purple">${ICONS.chart}</div>
+          <span class="card-arrow">${ICONS.arrowRight}</span>
+        </div>
+        <div class="action-title">Performance</div>
+        <div class="action-desc">Accuracy rate, test history & analytics</div>
       </div>
     </div>
 
-    <!-- Secondary Actions Grid -->
+    <!-- Secondary Quick Access Grid -->
     <div class="action-grid-secondary">
       <div class="action-card-small" id="btn-action-formulas">
-        <span>🧮</span> FORMULA HUB
+        <span class="small-card-icon">${ICONS.formula}</span>
+        <span>Formula Hub</span>
       </div>
       <div class="action-card-small" id="btn-action-daily">
-        <span>📅</span> DAILY CHALLENGE
+        <span class="small-card-icon">${ICONS.calendar}</span>
+        <span>Daily Challenge</span>
       </div>
       <div class="action-card-small" id="btn-action-badges">
-        <span>🏆</span> BADGES (${state.badges.length}/${BADGES_DEF.length})
+        <span class="small-card-icon">${ICONS.award}</span>
+        <span>Badges (${state.badges.length}/${BADGES_DEF.length})</span>
       </div>
       <div class="action-card-small" id="btn-action-profile">
-        <span>👤</span> PROFILE
+        <span class="small-card-icon">${ICONS.user}</span>
+        <span>Profile</span>
       </div>
     </div>
 
     <!-- Bottom Quick Metrics -->
     <div class="bottom-stats-row">
       <div class="bottom-stat-item">
-        <div class="bottom-stat-label">TOTAL ANSWERED</div>
+        <div class="bottom-stat-label">SOLVED</div>
         <div class="bottom-stat-val">${state.total_questions}</div>
       </div>
       <div class="bottom-stat-item">
         <div class="bottom-stat-label">ACCURACY</div>
-        <div class="bottom-stat-val" style="color: ${accuracy >= 70 ? 'var(--green)' : 'var(--yellow)'}">${accuracy}%</div>
+        <div class="bottom-stat-val" style="color: ${accuracy >= 70 ? 'var(--emerald)' : 'var(--amber)'}">${accuracy}%</div>
       </div>
       <div class="bottom-stat-item">
-        <div class="bottom-stat-label">QUIZZES COMPLETED</div>
+        <div class="bottom-stat-label">QUIZZES</div>
         <div class="bottom-stat-val">${state.quizzes}</div>
       </div>
       <div class="bottom-stat-item">
-        <div class="bottom-stat-label">BEST SCORE</div>
+        <div class="bottom-stat-label">BEST</div>
         <div class="bottom-stat-val" style="color: var(--cyan)">${state.best_score}%</div>
       </div>
     </div>
   `;
 
-  document.getElementById('btn-action-quiz').onclick = showQuizSetup;
-  document.getElementById('btn-action-learn').onclick = showLearn;
-  document.getElementById('btn-action-lab').onclick = showLab;
-  document.getElementById('btn-action-progress').onclick = showProgress;
+  document.getElementById('btn-action-quiz').onclick = () => { setActiveTab('tab-quiz'); showQuizSetup(); };
+  document.getElementById('btn-action-learn').onclick = () => { setActiveTab('tab-learn'); showLearn(); };
+  document.getElementById('btn-action-lab').onclick = () => { setActiveTab('tab-lab'); showLab(); };
+  document.getElementById('btn-action-progress').onclick = () => showProgress();
   document.getElementById('btn-action-formulas').onclick = showFormulas;
   document.getElementById('btn-action-daily').onclick = startDaily;
   document.getElementById('btn-action-badges').onclick = showBadges;
-  document.getElementById('btn-action-profile').onclick = showProfile;
+  document.getElementById('btn-action-profile').onclick = () => { setActiveTab('tab-profile'); showProfile(); };
 }
 
 // -------------------------------------------------------------
@@ -214,24 +252,26 @@ function showQuizSetup() {
 
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">⚡ QUIZ ARENA</h2>
-      <p class="page-subtitle">Select a topic or launch a custom challenge</p>
+      <div class="section-tag">ASSESSMENT MODULE</div>
+      <h2 class="page-title">Quiz Arena</h2>
+      <p class="page-subtitle">Select a subject module or configure a custom exam</p>
     </div>
 
-    <div class="content-box" style="margin-bottom: 24px;">
-      <h3 style="margin-bottom: 14px; font-size: 1.1rem; color: var(--cyan);">CHOOSE BY TOPIC (10 Questions Each)</h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+    <div class="content-box" style="margin-bottom: 20px;">
+      <div class="content-box-title">TOPIC MODULES (10 QUESTIONS EACH)</div>
+      <div class="topic-grid">
         ${topics.map(t => `
-          <button class="btn topic-pick-btn" data-topic="${t}" style="text-align: left; justify-content: flex-start;">
-            🔹 ${t}
+          <button class="topic-pick-btn" data-topic="${t}">
+            <span class="topic-dot"></span>
+            <span class="topic-name">${t}</span>
           </button>
         `).join('')}
       </div>
     </div>
 
     <div class="content-box">
-      <h3 style="margin-bottom: 14px; font-size: 1.1rem; color: var(--cyan);">CUSTOM CHALLENGE</h3>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+      <div class="content-box-title">CUSTOM EXAM SETUP</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
         <div class="form-group">
           <label>DIFFICULTY</label>
           <select class="form-input" id="custom-diff">
@@ -241,7 +281,7 @@ function showQuizSetup() {
           </select>
         </div>
         <div class="form-group">
-          <label>NUMBER OF QUESTIONS</label>
+          <label>QUESTIONS COUNT</label>
           <select class="form-input" id="custom-count">
             <option value="5">5 Questions</option>
             <option value="10" selected>10 Questions</option>
@@ -250,7 +290,7 @@ function showQuizSetup() {
         </div>
       </div>
       <button class="btn btn-primary" id="start-custom-btn" style="width: 100%;">
-        ▶ START CHALLENGE
+        START CHALLENGE
       </button>
     </div>
   `;
@@ -273,7 +313,7 @@ function showQuizSetup() {
 
 function startQuiz(questions) {
   if (!questions || questions.length === 0) {
-    alert("No questions available for this selection.");
+    showToast("No questions available for this selection.");
     return;
   }
   activeQuizQuestions = questions;
@@ -293,10 +333,12 @@ function renderQuizQuestion() {
     <div class="quiz-card">
       <div class="quiz-meta-bar">
         <div>
-          <span style="color: var(--cyan); font-weight: 700;">QUESTION ${activeQuizIndex + 1} OF ${total}</span>
-          <span style="color: var(--muted); margin-left: 10px;">[${q.topic} • ${q.difficulty}]</span>
+          <span class="meta-question-count">QUESTION ${activeQuizIndex + 1} OF ${total}</span>
+          <span class="meta-badge">${q.topic}</span>
         </div>
-        <div class="quiz-timer" id="timer-display">⏱ 30s</div>
+        <div class="quiz-timer" id="timer-display">
+          ${ICONS.clock} <span>30s</span>
+        </div>
       </div>
 
       <div class="question-text">${escapeHtml(q.q)}</div>
@@ -305,7 +347,7 @@ function renderQuizQuestion() {
         ${q.options.map((opt, i) => `
           <button class="option-btn" data-index="${i}">
             <span class="opt-badge">${String.fromCharCode(65 + i)}</span>
-            <span>${escapeHtml(opt)}</span>
+            <span class="opt-text">${escapeHtml(opt)}</span>
           </button>
         `).join('')}
       </div>
@@ -319,7 +361,7 @@ function renderQuizQuestion() {
   quizTimerInterval = setInterval(() => {
     activeTimerSeconds--;
     if (timerDisplay) {
-      timerDisplay.textContent = `⏱ ${activeTimerSeconds}s`;
+      timerDisplay.innerHTML = `${ICONS.clock} <span>${activeTimerSeconds}s</span>`;
       if (activeTimerSeconds <= 7) timerDisplay.classList.add('urgent');
     }
     if (activeTimerSeconds <= 0) {
@@ -367,14 +409,14 @@ function handleAnswerSelect(selectedIndex) {
   const feedbackArea = document.getElementById('feedback-area');
   feedbackArea.innerHTML = `
     <div class="explanation-card">
-      <div style="font-weight: 700; margin-bottom: 6px; color: ${isCorrect ? 'var(--green)' : 'var(--red)'}">
-        ${isCorrect ? '✓ Correct! +100 XP' : isTimeout ? '⏱ Time expired!' : '✗ Incorrect!'}
+      <div class="feedback-status ${isCorrect ? 'status-correct' : 'status-incorrect'}">
+        ${isCorrect ? `${ICONS.check} Correct +100 XP` : isTimeout ? `${ICONS.clock} Time Expired` : `${ICONS.cross} Incorrect`}
       </div>
-      <div>${escapeHtml(q.exp)}</div>
+      <div class="feedback-text">${escapeHtml(q.exp)}</div>
     </div>
-    <div style="text-align: right;">
+    <div style="text-align: right; margin-top: 14px;">
       <button class="btn btn-primary" id="next-q-btn">
-        ${activeQuizIndex + 1 < activeQuizQuestions.length ? 'NEXT QUESTION →' : 'FINISH QUIZ →'}
+        ${activeQuizIndex + 1 < activeQuizQuestions.length ? 'NEXT QUESTION' : 'VIEW RESULTS'}
       </button>
     </div>
   `;
@@ -399,43 +441,38 @@ function finishQuiz() {
     state.best_score = scorePercent;
   }
 
+  // Record history
   state.history.push({
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    score: scorePercent,
     correct: activeQuizCorrect,
-    total: total,
-    score: scorePercent
+    total: total
   });
-
   saveData();
   checkBadges();
 
   appView.innerHTML = `
-    <div class="content-box" style="text-align: center; max-width: 600px;">
-      <h2 style="font-size: 2rem; margin-bottom: 10px;">QUIZ COMPLETE!</h2>
-      <p style="color: var(--muted); margin-bottom: 20px;">Great effort on completing your session</p>
-
-      <div class="score-badge-circle">
-        <span class="score-num">${scorePercent}%</span>
+    <div class="content-box" style="text-align: center; max-width: 500px; margin: 40px auto; padding: 36px 24px;">
+      <div class="section-tag">COMPLETED</div>
+      <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 8px;">${scorePercent}%</h2>
+      <div style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 6px;">
+        ${activeQuizCorrect} of ${total} Questions Correct
       </div>
-
-      <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">
-        ${activeQuizCorrect} / ${total} Correct
-      </div>
-      <div style="color: var(--green); font-weight: 700; margin-bottom: 25px;">
-        +${activeQuizXP} XP Earned
+      <div style="color: var(--emerald); font-weight: 700; margin-bottom: 25px;">
+        +${activeQuizXP} XP EARNED
       </div>
 
       <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-primary" id="btn-quiz-again">🔄 AGAIN</button>
-        <button class="btn" id="btn-quiz-progress">📊 PROGRESS</button>
-        <button class="btn" id="btn-quiz-home">⌂ HOME</button>
+        <button class="btn btn-primary" id="btn-quiz-again">RETRY QUIZ</button>
+        <button class="btn" id="btn-quiz-progress">PERFORMANCE</button>
+        <button class="btn" id="btn-quiz-home">HOME</button>
       </div>
     </div>
   `;
 
   document.getElementById('btn-quiz-again').onclick = showQuizSetup;
   document.getElementById('btn-quiz-progress').onclick = showProgress;
-  document.getElementById('btn-quiz-home').onclick = showHome;
+  document.getElementById('btn-quiz-home').onclick = () => { setActiveTab('tab-home'); showHome(); };
 }
 
 // -------------------------------------------------------------
@@ -453,11 +490,10 @@ function startDaily() {
   }
 
   if (state.daily_done) {
-    alert(`Today's daily challenge is already completed! Score: ${state.daily_score}%`);
+    showToast(`Today's daily challenge completed! Score: ${state.daily_score}%`);
     return;
   }
 
-  // Seed daily questions deterministically using today's date
   let seed = 0;
   for (let i = 0; i < today.length; i++) seed += today.charCodeAt(i);
   const dailySet = shuffle([...QUESTIONS], seed).slice(0, 5);
@@ -478,7 +514,8 @@ function renderDailyQuestion() {
   appView.innerHTML = `
     <div class="quiz-card">
       <div class="page-header" style="margin-bottom: 15px;">
-        <h2 class="page-title" style="color: var(--yellow);">📅 DAILY CHALLENGE</h2>
+        <div class="section-tag">DAILY MODULE</div>
+        <h2 class="page-title">Daily Challenge</h2>
         <p class="page-subtitle">Question ${activeQuizIndex + 1} of ${total} (+150 XP each)</p>
       </div>
 
@@ -488,7 +525,7 @@ function renderDailyQuestion() {
         ${q.options.map((opt, i) => `
           <button class="option-btn" data-index="${i}">
             <span class="opt-badge">${String.fromCharCode(65 + i)}</span>
-            <span>${escapeHtml(opt)}</span>
+            <span class="opt-text">${escapeHtml(opt)}</span>
           </button>
         `).join('')}
       </div>
@@ -507,10 +544,10 @@ function renderDailyQuestion() {
         state.correct_answers++;
         state.xp += 150;
         state.streak++;
-        alert(`✓ Correct!\n\n${q.exp}\n\n+150 XP`);
+        showToast("Correct! +150 XP");
       } else {
         state.streak = 0;
-        alert(`✗ Incorrect!\n\nCorrect answer: ${q.options[q.answer]}\n\n${q.exp}`);
+        showToast(`Incorrect! Answer: ${q.options[q.answer]}`);
       }
       saveData();
       checkBadges();
@@ -522,6 +559,7 @@ function renderDailyQuestion() {
         state.daily_done = true;
         state.daily_score = Math.round((activeQuizCorrect / activeQuizQuestions.length) * 100);
         saveData();
+        setActiveTab('tab-home');
         showHome();
       }
     };
@@ -537,21 +575,22 @@ function showLearn() {
 
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">📚 ECE LEARNING HUB</h2>
-      <p class="page-subtitle">Choose a topic to review core definitions & theoretical principles</p>
+      <div class="section-tag">THEORY CURRICULUM</div>
+      <h2 class="page-title">Learning Hub</h2>
+      <p class="page-subtitle">Core engineering definitions, theorems and circuit behavior</p>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;">
       ${lessonEntries.map(([name, item]) => {
         const completed = (state.completed_lessons || []).includes(name);
         return `
           <div class="action-card" data-lesson="${name}" style="text-align: left; align-items: flex-start;">
-            <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
-              <span style="font-size: 2rem;">${item.icon}</span>
-              ${completed ? `<span style="color: var(--green); font-weight: 700; font-size: 0.8rem;">✓ COMPLETED</span>` : ''}
+            <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 12px;">
+              <span class="module-num">${item.icon}</span>
+              ${completed ? `<span class="badge-status-done">${ICONS.check} DONE</span>` : ''}
             </div>
             <div class="action-title">${escapeHtml(name)}</div>
-            <div class="action-desc">${item.sections.length} core subtopics covered</div>
+            <div class="action-desc">${item.sections.length} syllabus subtopics covered</div>
           </div>
         `;
       }).join('')}
@@ -571,22 +610,23 @@ function renderLessonDetails(lessonName) {
 
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">${lesson.icon} ${escapeHtml(lessonName)}</h2>
+      <div class="section-tag">MODULE ${lesson.icon}</div>
+      <h2 class="page-title">${escapeHtml(lessonName)}</h2>
       <p class="page-subtitle">Syllabus Topic Notes & Explanations</p>
     </div>
 
-    <div class="content-box" style="max-width: 800px; margin-bottom: 20px;">
+    <div class="content-box" style="max-width: 800px; margin: 0 auto 20px;">
       ${lesson.sections.map(sec => `
-        <div style="margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid rgba(27, 53, 80, 0.5);">
-          <h3 style="color: var(--cyan); font-size: 1.15rem; margin-bottom: 8px;">${escapeHtml(sec.title)}</h3>
-          <p style="color: #E2E8F0; line-height: 1.6; font-size: 0.95rem;">${escapeHtml(sec.content)}</p>
+        <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+          <h3 style="color: var(--cyan); font-size: 1.1rem; margin-bottom: 6px; font-weight: 700;">${escapeHtml(sec.title)}</h3>
+          <p style="color: var(--text-secondary); line-height: 1.65; font-size: 0.95rem;">${escapeHtml(sec.content)}</p>
         </div>
       `).join('')}
 
       <div style="display: flex; gap: 12px; justify-content: space-between; align-items: center; margin-top: 25px; flex-wrap: wrap;">
-        <button class="btn" id="btn-back-learn">← BACK TO TOPICS</button>
+        <button class="btn" id="btn-back-learn">${ICONS.arrowLeft} TOPICS</button>
         <button class="btn ${isCompleted ? 'btn-green' : 'btn-primary'}" id="btn-mark-completed">
-          ${isCompleted ? '✓ COMPLETED' : 'MARK AS COMPLETED (+50 XP)'}
+          ${isCompleted ? 'COMPLETED' : 'MARK AS COMPLETED (+50 XP)'}
         </button>
       </div>
     </div>
@@ -613,63 +653,64 @@ function showLab() {
 
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">🧪 VIRTUAL ECE LAB</h2>
-      <p class="page-subtitle">Interactive hardware circuits, sensor calculators, and logic simulators</p>
+      <div class="section-tag">VIRTUAL WORKBENCH</div>
+      <h2 class="page-title">Electronics Lab</h2>
+      <p class="page-subtitle">Interactive hardware circuits, sensor calculators & logic simulators</p>
     </div>
 
     <div class="lab-grid">
       <div class="lab-item-card" id="lab-ohm-card">
         <div>
-          <div style="font-size: 2rem; margin-bottom: 10px;">⚡</div>
-          <div class="action-title">OHM'S LAW</div>
+          <div class="lab-tag">CIRCUITS</div>
+          <div class="action-title">Ohm's Law</div>
           <div class="action-desc">Calculate V, I, or R dynamically from two inputs</div>
         </div>
-        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB →</button>
+        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB</button>
       </div>
 
       <div class="lab-item-card" id="lab-led-card">
         <div>
-          <div style="font-size: 2rem; margin-bottom: 10px;">💡</div>
-          <div class="action-title">LED CIRCUIT</div>
+          <div class="lab-tag">OPTOELECTRONICS</div>
+          <div class="action-title">LED Circuit</div>
           <div class="action-desc">Determine suitable current-limiting resistor values</div>
         </div>
-        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB →</button>
+        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB</button>
       </div>
 
       <div class="lab-item-card" id="lab-ldr-card">
         <div>
-          <div style="font-size: 2rem; margin-bottom: 10px;">☀</div>
-          <div class="action-title">LDR SENSOR</div>
-          <div class="action-desc">Light level vs photoresistor resistance simulator</div>
+          <div class="lab-tag">SENSORS</div>
+          <div class="action-title">LDR Photoresistor</div>
+          <div class="action-desc">Ambient light level vs resistance simulator</div>
         </div>
-        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB →</button>
+        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB</button>
       </div>
 
       <div class="lab-item-card" id="lab-ultrasonic-card">
         <div>
-          <div style="font-size: 2rem; margin-bottom: 10px;">📏</div>
-          <div class="action-title">HC-SR04 ULTRASONIC</div>
+          <div class="lab-tag">EMBEDDED</div>
+          <div class="action-title">Ultrasonic HC-SR04</div>
           <div class="action-desc">Echo timing and distance calculation simulation</div>
         </div>
-        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB →</button>
+        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB</button>
       </div>
 
       <div class="lab-item-card" id="lab-logic-card">
         <div>
-          <div style="font-size: 2rem; margin-bottom: 10px;">🔢</div>
-          <div class="action-title">LOGIC GATES</div>
-          <div class="action-desc">Interactive 2-input boolean logic gates truth-tester</div>
+          <div class="lab-tag">DIGITAL LOGIC</div>
+          <div class="action-title">Logic Gates</div>
+          <div class="action-desc">Interactive 2-input boolean gates truth-tester</div>
         </div>
-        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB →</button>
+        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB</button>
       </div>
 
       <div class="lab-item-card" id="lab-rc-card">
         <div>
-          <div style="font-size: 2rem; margin-bottom: 10px;">〰️</div>
-          <div class="action-title">RC TRANSIENT</div>
-          <div class="action-desc">Capacitor charge curves and time-constant (τ) tool</div>
+          <div class="lab-tag">TRANSIENTS</div>
+          <div class="action-title">RC Circuit</div>
+          <div class="action-desc">Capacitor charge curves and time-constant tool</div>
         </div>
-        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB →</button>
+        <button class="btn btn-primary" style="margin-top: 15px;">LAUNCH LAB</button>
       </div>
     </div>
   `;
@@ -685,21 +726,22 @@ function showLab() {
 function labOhm() {
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">⚡ OHM'S LAW CALCULATOR</h2>
+      <div class="section-tag">SIMULATOR 01</div>
+      <h2 class="page-title">Ohm's Law Calculator</h2>
       <p class="page-subtitle">Enter any two values to compute the missing variable</p>
     </div>
 
     <div class="lab-interactive-view">
       <div class="form-group">
-        <label>Voltage (V)</label>
+        <label>Voltage (V in Volts)</label>
         <input type="number" step="any" class="form-input" id="ohm-v" placeholder="e.g. 12">
       </div>
       <div class="form-group">
-        <label>Current (A)</label>
+        <label>Current (I in Amperes)</label>
         <input type="number" step="any" class="form-input" id="ohm-i" placeholder="e.g. 0.5">
       </div>
       <div class="form-group">
-        <label>Resistance (Ω)</label>
+        <label>Resistance (R in Ohms)</label>
         <input type="number" step="any" class="form-input" id="ohm-r" placeholder="e.g. 24">
       </div>
 
@@ -707,7 +749,7 @@ function labOhm() {
 
       <div style="display: flex; gap: 10px;">
         <button class="btn btn-primary" id="btn-ohm-calc" style="flex: 1;">CALCULATE</button>
-        <button class="btn" id="btn-lab-back">← LABS</button>
+        <button class="btn" id="btn-lab-back">BACK</button>
       </div>
     </div>
   `;
@@ -722,7 +764,7 @@ function labOhm() {
     const filled = [vStr, iStr, rStr].filter(x => x !== "").length;
     if (filled !== 2) {
       res.textContent = "Please fill exactly two fields.";
-      res.style.color = "var(--red)";
+      res.style.color = "var(--rose)";
       return;
     }
 
@@ -743,8 +785,9 @@ function labOhm() {
 function labLed() {
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">💡 LED CURRENT-LIMITING RESISTOR</h2>
-      <p class="page-subtitle">Protect LEDs from overcurrent burnouts</p>
+      <div class="section-tag">SIMULATOR 02</div>
+      <h2 class="page-title">LED Current-Limiting Resistor</h2>
+      <p class="page-subtitle">Protect diode circuits from overcurrent breakdown</p>
     </div>
 
     <div class="lab-interactive-view">
@@ -753,11 +796,11 @@ function labLed() {
         <input type="number" step="any" class="form-input" id="led-vs" value="5">
       </div>
       <div class="form-group">
-        <label>LED Forward Voltage (Vf in Volts, e.g. 2.0V for Red)</label>
+        <label>Forward Voltage (Vf in Volts)</label>
         <input type="number" step="any" class="form-input" id="led-vf" value="2.0">
       </div>
       <div class="form-group">
-        <label>Desired Forward Current (If in Amperes, e.g. 0.02A for 20mA)</label>
+        <label>Forward Current (If in Amperes)</label>
         <input type="number" step="any" class="form-input" id="led-if" value="0.02">
       </div>
 
@@ -765,7 +808,7 @@ function labLed() {
 
       <div style="display: flex; gap: 10px;">
         <button class="btn btn-primary" id="btn-led-calc" style="flex: 1;">CALCULATE</button>
-        <button class="btn" id="btn-lab-back">← LABS</button>
+        <button class="btn" id="btn-lab-back">BACK</button>
       </div>
     </div>
   `;
@@ -779,7 +822,7 @@ function labLed() {
 
     if (vs <= vf || cur <= 0) {
       res.textContent = "Supply voltage must be greater than LED forward voltage.";
-      res.style.color = "var(--red)";
+      res.style.color = "var(--rose)";
       return;
     }
     const r = (vs - vf) / cur;
@@ -791,8 +834,9 @@ function labLed() {
 function labLdr() {
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">☀ LDR LIGHT SENSOR SIMULATOR</h2>
-      <p class="page-subtitle">Drag the slider to adjust ambient light intensity</p>
+      <div class="section-tag">SIMULATOR 03</div>
+      <h2 class="page-title">LDR Light Sensor</h2>
+      <p class="page-subtitle">Slide to simulate ambient luminescence change</p>
     </div>
 
     <div class="lab-interactive-view">
@@ -802,10 +846,10 @@ function labLdr() {
       </div>
 
       <div class="lab-result-display" id="ldr-res">
-        Light Level: 50%<br>🌥️ MEDIUM LIGHT
+        Light Level: 50%<br>MODERATE LIGHT (Medium Resistance)
       </div>
 
-      <button class="btn" id="btn-lab-back" style="width: 100%;">← BACK TO LABS</button>
+      <button class="btn" id="btn-lab-back" style="width: 100%;">BACK TO LABS</button>
     </div>
   `;
 
@@ -817,9 +861,9 @@ function labLdr() {
   slider.oninput = () => {
     const val = parseInt(slider.value, 10);
     valDisp.textContent = val;
-    let desc = "☀️ BRIGHT (Low Resistance)";
-    if (val < 25) desc = "🌑 DARK (High Resistance)";
-    else if (val < 65) desc = "🌥️ MEDIUM LIGHT (Moderate Resistance)";
+    let desc = "HIGH LIGHT (Low Resistance)";
+    if (val < 25) desc = "DARK ENVIRONMENT (High Resistance)";
+    else if (val < 65) desc = "MODERATE LIGHT (Medium Resistance)";
     res.innerHTML = `Light Level: ${val}%<br>${desc}`;
   };
 }
@@ -827,7 +871,8 @@ function labLdr() {
 function labUltrasonic() {
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">📏 HC-SR04 ULTRASONIC SENSOR</h2>
+      <div class="section-tag">SIMULATOR 04</div>
+      <h2 class="page-title">HC-SR04 Ultrasonic Sensor</h2>
       <p class="page-subtitle">Calculate echo time based on physical object distance</p>
     </div>
 
@@ -841,7 +886,7 @@ function labUltrasonic() {
         Distance: 50 cm<br>Echo Pulse Width ≈ 2900 μs
       </div>
 
-      <button class="btn" id="btn-lab-back" style="width: 100%;">← BACK TO LABS</button>
+      <button class="btn" id="btn-lab-back" style="width: 100%;">BACK TO LABS</button>
     </div>
   `;
 
@@ -860,8 +905,9 @@ function labUltrasonic() {
 function labLogic() {
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">🔢 DIGITAL LOGIC GATES</h2>
-      <p class="page-subtitle">Test standard digital logic functions with binary inputs</p>
+      <div class="section-tag">SIMULATOR 05</div>
+      <h2 class="page-title">Digital Logic Gates</h2>
+      <p class="page-subtitle">Test standard boolean logic functions with binary inputs</p>
     </div>
 
     <div class="lab-interactive-view">
@@ -883,12 +929,12 @@ function labLogic() {
       </div>
 
       <div class="form-group">
-        <label>Gate Type</label>
+        <label>Gate Function</label>
         <select class="form-input" id="gate-type">
           <option value="AND">AND Gate</option>
           <option value="OR">OR Gate</option>
-          <option value="NAND">NAND Gate (Universal)</option>
-          <option value="NOR">NOR Gate (Universal)</option>
+          <option value="NAND">NAND Gate</option>
+          <option value="NOR">NOR Gate</option>
           <option value="XOR">XOR Gate</option>
           <option value="XNOR">XNOR Gate</option>
         </select>
@@ -899,8 +945,8 @@ function labLogic() {
       </div>
 
       <div style="display: flex; gap: 10px;">
-        <button class="btn btn-primary" id="btn-gate-run" style="flex: 1;">RUN GATE</button>
-        <button class="btn" id="btn-lab-back">← LABS</button>
+        <button class="btn btn-primary" id="btn-gate-run" style="flex: 1;">EVALUATE</button>
+        <button class="btn" id="btn-lab-back">BACK</button>
       </div>
     </div>
   `;
@@ -920,7 +966,7 @@ function labLogic() {
     else if (g === "XNOR") out = !(a ^ b) ? 1 : 0;
 
     const res = document.getElementById('gate-res');
-    res.innerHTML = `Output Y = ${out} (${out ? 'HIGH 💡' : 'LOW 🌑'})`;
+    res.innerHTML = `Output Y = ${out} (${out ? 'HIGH' : 'LOW'})`;
   };
 
   document.getElementById('btn-gate-run').onclick = runGate;
@@ -932,7 +978,8 @@ function labLogic() {
 function labRc() {
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">〰️ RC CIRCUIT TRANSIENT</h2>
+      <div class="section-tag">SIMULATOR 06</div>
+      <h2 class="page-title">RC Transient Circuit</h2>
       <p class="page-subtitle">Simulate capacitor charge curve Vc(t) = Vs(1 - e^(-t/RC))</p>
     </div>
 
@@ -947,7 +994,7 @@ function labRc() {
           <input type="number" step="any" class="form-input" id="rc-r" value="1000">
         </div>
         <div class="form-group">
-          <label>Capacitance (F, e.g. 0.001)</label>
+          <label>Capacitance (F)</label>
           <input type="number" step="any" class="form-input" id="rc-c" value="0.001">
         </div>
         <div class="form-group">
@@ -962,7 +1009,7 @@ function labRc() {
 
       <div style="display: flex; gap: 10px;">
         <button class="btn btn-primary" id="btn-rc-calc" style="flex: 1;">CALCULATE</button>
-        <button class="btn" id="btn-lab-back">← LABS</button>
+        <button class="btn" id="btn-lab-back">BACK</button>
       </div>
     </div>
   `;
@@ -994,27 +1041,28 @@ function showProgress() {
 
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">📊 MY JOURNEY</h2>
-      <p class="page-subtitle">Track your performance and recent quiz activity</p>
+      <div class="section-tag">ANALYTICS</div>
+      <h2 class="page-title">Performance Journey</h2>
+      <p class="page-subtitle">Track your accuracy and review assessment history</p>
     </div>
 
     <div class="content-box" style="margin-bottom: 24px;">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; text-align: center;">
-        <div class="stat-pill" style="justify-content: center; flex-direction: column; padding: 12px;">
-          <div class="label">CURRENT LEVEL</div>
-          <div class="value" style="font-size: 1.4rem;">${getLevel()}</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; text-align: center;">
+        <div class="stat-metric-card">
+          <div class="stat-metric-label">CURRENT RANK</div>
+          <div class="stat-metric-val">LVL ${getLevel()}</div>
         </div>
-        <div class="stat-pill" style="justify-content: center; flex-direction: column; padding: 12px;">
-          <div class="label">TOTAL XP</div>
-          <div class="value" style="font-size: 1.4rem; color: var(--accent);">${state.xp}</div>
+        <div class="stat-metric-card">
+          <div class="stat-metric-label">TOTAL XP</div>
+          <div class="stat-metric-val" style="color: var(--cyan);">${state.xp}</div>
         </div>
-        <div class="stat-pill" style="justify-content: center; flex-direction: column; padding: 12px;">
-          <div class="label">ACCURACY</div>
-          <div class="value" style="font-size: 1.4rem; color: var(--green);">${accuracy}%</div>
+        <div class="stat-metric-card">
+          <div class="stat-metric-label">ACCURACY</div>
+          <div class="stat-metric-val" style="color: ${accuracy >= 70 ? 'var(--emerald)' : 'var(--amber)'};">${accuracy}%</div>
         </div>
-        <div class="stat-pill" style="justify-content: center; flex-direction: column; padding: 12px;">
-          <div class="label">LESSONS COMPLETED</div>
-          <div class="value" style="font-size: 1.4rem; color: var(--cyan);">
+        <div class="stat-metric-card">
+          <div class="stat-metric-label">LESSONS</div>
+          <div class="stat-metric-val" style="color: var(--accent);">
             ${(state.completed_lessons || []).length} / ${Object.keys(LESSONS).length}
           </div>
         </div>
@@ -1022,16 +1070,16 @@ function showProgress() {
     </div>
 
     <div class="content-box">
-      <h3 style="margin-bottom: 14px; font-size: 1.1rem; color: var(--cyan);">RECENT QUIZ HISTORY</h3>
+      <div class="content-box-title">RECENT ASSESSMENT HISTORY</div>
       ${state.history.length === 0 ? `
-        <p style="color: var(--muted); text-align: center; padding: 20px;">No quizzes taken yet. Start a quiz to see your history!</p>
+        <p style="color: var(--text-muted); text-align: center; padding: 24px;">No assessment records yet. Take a quiz to track your history!</p>
       ` : `
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          ${state.history.slice(-6).reverse().map(h => `
-            <div style="background: var(--panel-2); padding: 12px 18px; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: var(--muted); font-size: 0.9rem;">${h.date}</span>
-              <span style="font-weight: 700;">${h.correct} / ${h.total} Correct</span>
-              <span style="color: ${h.score >= 70 ? 'var(--green)' : 'var(--yellow)'}; font-weight: 800;">${h.score}%</span>
+          ${state.history.slice(-8).reverse().map(h => `
+            <div class="history-item">
+              <span class="history-date">${h.date}</span>
+              <span class="history-score">${h.correct} / ${h.total} Correct</span>
+              <span class="history-badge" style="color: ${h.score >= 70 ? 'var(--emerald)' : 'var(--amber)'};">${h.score}%</span>
             </div>
           `).join('')}
         </div>
@@ -1048,13 +1096,14 @@ function showFormulas() {
 
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">🧮 ECE FORMULA HUB</h2>
-      <p class="page-subtitle">Essential engineering formulas for rapid revision</p>
+      <div class="section-tag">REFERENCE</div>
+      <h2 class="page-title">Formula Hub</h2>
+      <p class="page-subtitle">Essential engineering formulas for quick revision</p>
     </div>
 
-    <div class="content-box" style="max-width: 960px;">
+    <div class="content-box" style="max-width: 960px; margin: 0 auto;">
       <div class="form-group" style="margin-bottom: 20px;">
-        <input type="text" class="form-input" id="formula-search" placeholder="🔍 Search formulas by name or symbol...">
+        <input type="text" class="form-input" id="formula-search" placeholder="Search formulas by name or symbol...">
       </div>
 
       <div id="formula-list">
@@ -1075,12 +1124,12 @@ function showFormulas() {
 }
 
 function renderFormulaItems(items) {
-  if (items.length === 0) return `<div style="text-align: center; color: var(--muted); padding: 20px;">No formulas match your search.</div>`;
+  if (items.length === 0) return `<div style="text-align: center; color: var(--text-muted); padding: 24px;">No formulas match your search.</div>`;
   return items.map(f => `
     <div class="formula-item">
-      <div style="font-weight: 700; color: #FFF;">${escapeHtml(f.title)}</div>
+      <div class="formula-title">${escapeHtml(f.title)}</div>
       <div class="formula-eq">${escapeHtml(f.formula)}</div>
-      <div style="color: var(--muted); font-size: 0.85rem;">${escapeHtml(f.description)}</div>
+      <div class="formula-desc">${escapeHtml(f.description)}</div>
     </div>
   `).join('');
 }
@@ -1093,8 +1142,9 @@ function showBadges() {
 
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">🏆 ACHIEVEMENTS & BADGES</h2>
-      <p class="page-subtitle">${state.badges.length} of ${BADGES_DEF.length} badges unlocked</p>
+      <div class="section-tag">MILESTONES</div>
+      <h2 class="page-title">Achievements</h2>
+      <p class="page-subtitle">${state.badges.length} of ${BADGES_DEF.length} unlocked</p>
     </div>
 
     <div class="badges-container">
@@ -1102,12 +1152,12 @@ function showBadges() {
         const unlocked = state.badges.includes(b.id);
         return `
           <div class="badge-tile ${unlocked ? 'unlocked' : 'locked'}">
-            <div class="badge-icon-box">${unlocked ? b.icon : '🔒'}</div>
+            <div class="badge-tag-box">${b.icon}</div>
             <div>
-              <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; color: ${unlocked ? '#FFF' : 'var(--muted)'}">
+              <div class="badge-name" style="color: ${unlocked ? 'var(--text-primary)' : 'var(--text-muted)'}">
                 ${escapeHtml(b.id)}
               </div>
-              <div style="font-size: 0.8rem; color: var(--muted);">${escapeHtml(b.desc)}</div>
+              <div class="badge-desc">${escapeHtml(b.desc)}</div>
             </div>
           </div>
         `;
@@ -1124,21 +1174,22 @@ function showProfile() {
 
   appView.innerHTML = `
     <div class="page-header">
-      <h2 class="page-title">👤 STUDENT PROFILE</h2>
-      <p class="page-subtitle">Manage your local student information</p>
+      <div class="section-tag">SETTINGS</div>
+      <h2 class="page-title">Student Profile</h2>
+      <p class="page-subtitle">Personal academic credentials and local data</p>
     </div>
 
-    <div class="content-box" style="max-width: 550px;">
+    <div class="content-box" style="max-width: 520px; margin: 0 auto;">
       <div class="form-group">
         <label>FULL NAME</label>
         <input type="text" class="form-input" id="prof-name" value="${escapeHtml(state.profile.name)}">
       </div>
       <div class="form-group">
-        <label>COLLEGE / UNIVERSITY</label>
+        <label>INSTITUTION</label>
         <input type="text" class="form-input" id="prof-college" value="${escapeHtml(state.profile.college)}">
       </div>
       <div class="form-group">
-        <label>BRANCH / MAJOR</label>
+        <label>DEPARTMENT / BRANCH</label>
         <input type="text" class="form-input" id="prof-branch" value="${escapeHtml(state.profile.branch)}">
       </div>
       <div class="form-group">
@@ -1147,18 +1198,19 @@ function showProfile() {
       </div>
 
       <button class="btn btn-primary" id="btn-save-profile" style="width: 100%; margin-top: 10px;">
-        💾 SAVE PROFILE
+        SAVE CHANGES
       </button>
     </div>
   `;
 
   document.getElementById('btn-save-profile').onclick = () => {
     state.profile.name = document.getElementById('prof-name').value.trim() || "Student";
-    state.profile.college = document.getElementById('prof-college').value.trim();
-    state.profile.branch = document.getElementById('prof-branch').value.trim();
-    state.profile.year = document.getElementById('prof-year').value.trim();
+    state.profile.college = document.getElementById('prof-college').value.trim() || "College";
+    state.profile.branch = document.getElementById('prof-branch').value.trim() || "ECE";
+    state.profile.year = document.getElementById('prof-year').value.trim() || "Year";
     saveData();
-    showToast("✓ Profile updated successfully!");
+    showToast("Profile updated successfully!");
+    setActiveTab('tab-home');
     showHome();
   };
 }
@@ -1217,4 +1269,3 @@ if (navHomeBtn) navHomeBtn.onclick = () => { setActiveTab('tab-home'); showHome(
 
 // Initialize
 showHome();
-

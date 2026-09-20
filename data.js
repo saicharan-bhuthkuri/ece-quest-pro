@@ -441,7 +441,7 @@ export const QUESTIONS = [
 
 export const LESSONS = {
   "Electrical Basics": {
-    icon: "⚡",
+    icon: "01",
     topic: "Basics",
     sections: [
       { title: "Voltage", content: "Voltage is the potential difference between two points. It is measured in Volts (V)." },
@@ -452,7 +452,7 @@ export const LESSONS = {
     ]
   },
   "Components": {
-    icon: "🔧",
+    icon: "02",
     topic: "Components",
     sections: [
       { title: "Resistor", content: "Used to limit current and create voltage drops." },
@@ -463,7 +463,7 @@ export const LESSONS = {
     ]
   },
   "Circuit Theory": {
-    icon: "🔌",
+    icon: "03",
     topic: "Circuits",
     sections: [
       { title: "Series Circuit", content: "Components share one current path. The same current flows through ideal series elements." },
@@ -473,7 +473,7 @@ export const LESSONS = {
     ]
   },
   "Digital Electronics": {
-    icon: "🔢",
+    icon: "04",
     topic: "Digital",
     sections: [
       { title: "Binary", content: "Binary uses two states, normally represented as 0 and 1." },
@@ -484,7 +484,7 @@ export const LESSONS = {
     ]
   },
   "Analog Electronics": {
-    icon: "〰️",
+    icon: "05",
     topic: "Analog",
     sections: [
       { title: "Analog Signal", content: "An analog signal can vary continuously with time." },
@@ -495,7 +495,7 @@ export const LESSONS = {
     ]
   },
   "Embedded Systems": {
-    icon: "🤖",
+    icon: "06",
     topic: "Embedded",
     sections: [
       { title: "Microcontroller", content: "A microcontroller combines processing, memory and peripherals in a compact device." },
@@ -506,7 +506,7 @@ export const LESSONS = {
     ]
   },
   "Communication Systems": {
-    icon: "📡",
+    icon: "07",
     topic: "Communication",
     sections: [
       { title: "AM", content: "Amplitude Modulation varies carrier amplitude according to the information signal." },
@@ -516,7 +516,7 @@ export const LESSONS = {
     ]
   },
   "Measurements": {
-    icon: "📏",
+    icon: "08",
     topic: "Measurements",
     sections: [
       { title: "Voltmeter", content: "Used to measure voltage." },
@@ -527,7 +527,7 @@ export const LESSONS = {
     ]
   },
   "PCB & Hardware": {
-    icon: "🧩",
+    icon: "09",
     topic: "PCB",
     sections: [
       { title: "PCB", content: "Printed Circuit Boards mechanically support components and provide electrical connections." },
@@ -537,7 +537,7 @@ export const LESSONS = {
     ]
   },
   "Signals & Systems": {
-    icon: "〽️",
+    icon: "10",
     topic: "Signals",
     sections: [
       { title: "Signal", content: "A signal is a quantity that carries information." },
@@ -562,16 +562,16 @@ export const FORMULAS = [
 ];
 
 export const BADGES_DEF = [
-  { id: "FIRST STEP", icon: "🎯", desc: "Complete your first question", cond: d => d.total_questions >= 1 },
-  { id: "10 CORRECT", icon: "⭐", desc: "Answer 10 correctly", cond: d => d.correct_answers >= 10 },
-  { id: "25 CORRECT", icon: "🌟", desc: "Answer 25 correctly", cond: d => d.correct_answers >= 25 },
-  { id: "50 CORRECT", icon: "💫", desc: "Answer 50 correctly", cond: d => d.correct_answers >= 50 },
-  { id: "QUIZ WARRIOR", icon: "🎮", desc: "Complete 5 quizzes", cond: d => d.quizzes >= 5 },
-  { id: "QUIZ LEGEND", icon: "👑", desc: "Complete 10 quizzes", cond: d => d.quizzes >= 10 },
-  { id: "STREAK MASTER", icon: "🔥", desc: "Reach a 5 answer streak", cond: d => d.streak >= 5 },
-  { id: "XP HUNTER", icon: "⚡", desc: "Earn 1000 XP", cond: d => d.xp >= 1000 },
-  { id: "ECE SCHOLAR", icon: "🎓", desc: "Earn 2500 XP", cond: d => d.xp >= 2500 },
-  { id: "PERFECT SCORE", icon: "🏆", desc: "Get 100% in a quiz", cond: d => d.best_score === 100 },
-  { id: "LEARNER", icon: "📚", desc: "Complete 3 lessons", cond: d => (d.completed_lessons || []).length >= 3 },
-  { id: "KNOWLEDGE MASTER", icon: "🧠", desc: "Complete 8 lessons", cond: d => (d.completed_lessons || []).length >= 8 }
+  { id: "FIRST STEP", icon: "01", desc: "Complete your first question", cond: d => d.total_questions >= 1 },
+  { id: "10 CORRECT", icon: "10", desc: "Answer 10 correctly", cond: d => d.correct_answers >= 10 },
+  { id: "25 CORRECT", icon: "25", desc: "Answer 25 correctly", cond: d => d.correct_answers >= 25 },
+  { id: "50 CORRECT", icon: "50", desc: "Answer 50 correctly", cond: d => d.correct_answers >= 50 },
+  { id: "QUIZ WARRIOR", icon: "QW", desc: "Complete 5 quizzes", cond: d => d.quizzes >= 5 },
+  { id: "QUIZ LEGEND", icon: "QL", desc: "Complete 10 quizzes", cond: d => d.quizzes >= 10 },
+  { id: "STREAK MASTER", icon: "SM", desc: "Reach a 5 answer streak", cond: d => d.streak >= 5 },
+  { id: "XP HUNTER", icon: "XP", desc: "Earn 1000 XP", cond: d => d.xp >= 1000 },
+  { id: "ECE SCHOLAR", icon: "ES", desc: "Earn 2500 XP", cond: d => d.xp >= 2500 },
+  { id: "PERFECT SCORE", icon: "PS", desc: "Get 100% in a quiz", cond: d => d.best_score === 100 },
+  { id: "LEARNER", icon: "LN", desc: "Complete 3 lessons", cond: d => (d.completed_lessons || []).length >= 3 },
+  { id: "KNOWLEDGE MASTER", icon: "KM", desc: "Complete 8 lessons", cond: d => (d.completed_lessons || []).length >= 8 }
 ];
