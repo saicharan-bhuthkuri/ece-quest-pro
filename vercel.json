@@ -2,7 +2,7 @@
   "cleanUrls": true,
   "headers": [
     {
-      "source": "/(.*)\\.apk",
+      "source": "/(app-debug\\.apk|download)",
       "headers": [
         {
           "key": "Content-Type",
