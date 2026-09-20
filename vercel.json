@@ -1,8 +1,11 @@
 {
   "cleanUrls": true,
+  "redirects": [
+    { "source": "/landing", "destination": "/", "permanent": true },
+    { "source": "/landing.html", "destination": "/", "permanent": true }
+  ],
   "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/landing", "destination": "/landing.html" },
+    { "source": "/app", "destination": "/app.html" },
     { "source": "/dashboard", "destination": "/dashboard.html" },
     { "source": "/auth/:match*", "destination": "/api/auth.js" },
     { "source": "/api/admin/:match*", "destination": "/api/admin.js" },

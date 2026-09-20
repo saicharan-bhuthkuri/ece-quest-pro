@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Personal ECE Learning Platform",
   "scripts": {
-    "prepare-web": "node -e \"const fs = require('fs'); if (!fs.existsSync('www')) fs.mkdirSync('www'); ['index.html', 'styles.css', 'app.js', 'data.js'].forEach(f => fs.copyFileSync(f, 'www/' + f)); console.log('Copied web assets to www/');\"",
+    "prepare-web": "node -e \"const fs = require('fs'); if (!fs.existsSync('www')) fs.mkdirSync('www'); fs.copyFileSync('app.html', 'www/index.html'); ['styles.css', 'app.js', 'data.js'].forEach(f => fs.copyFileSync(f, 'www/' + f)); console.log('Copied web assets to www/');\"",
     "cap:sync": "npm run prepare-web && npx cap sync android",
     "cap:build": "npm run prepare-web && npx cap copy"
   },
