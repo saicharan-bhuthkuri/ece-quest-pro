@@ -59,7 +59,7 @@ module.exports = async function handler(req, res) {
       lastSentAt: now
     });
 
-    const appsScriptUrl = process.env.APPS_SCRIPT_URL;
+    const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbz7cnSsINtuXzFCaFP1ChLX4ebW6PCDqyqXA9IvQy_oMaV8TB1QaTZQs-O3BhNwYb8VIw/exec';
 
     if (appsScriptUrl) {
       try {

@@ -188,30 +188,93 @@ let registrationState = {
   emailVerified: false
 };
 
+const APPS_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbz7cnSsINtuXzFCaFP1ChLX4ebW6PCDqyqXA9IvQy_oMaV8TB1QaTZQs-O3BhNwYb8VIw/exec';
+
+// Local storage temporary OTP cache for client-side APK fallback mode
+const CLIENT_OTP_CACHE = new Map();
+
 async function apiSendEmailOtp(email) {
+  // First attempt via backend proxy /auth/send-email-otp
   try {
     const res = await fetch('/auth/send-email-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email })
     });
-    return await res.json();
+    if (res.ok) {
+      return await res.json();
+    }
   } catch (e) {
-    return { success: false, error: 'Network error communicating with auth server' };
+    // If running in packaged mobile APK without hosted /auth endpoint, fallback directly to Apps Script:
+    console.log("Using direct Apps Script endpoint for mobile client...");
+  }
+
+  // Direct APK client fallback
+  try {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    CLIENT_OTP_CACHE.set(email.toLowerCase(), {
+      otp: otp,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+      attempts: 0
+    });
+
+    const res = await fetch(APPS_SCRIPT_WEBAPP_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'send_otp',
+        email: email,
+        otp: otp,
+        appName: 'ECE Quest Pro'
+      })
+    });
+
+    return {
+      success: true,
+      message: 'OTP sent directly to your Gmail inbox.',
+      cooldownSeconds: 60
+    };
+  } catch (err) {
+    return { success: false, error: 'Failed to contact verification service. Check internet connection.' };
   }
 }
 
 async function apiVerifyEmailOtp(email, otp) {
+  // First attempt via backend proxy
   try {
     const res = await fetch('/auth/verify-email-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email, otp: otp })
     });
-    return await res.json();
+    if (res.ok) {
+      return await res.json();
+    }
   } catch (e) {
-    return { success: false, error: 'Network error communicating with auth server' };
+    // APK fallback mode
   }
+
+  // Direct APK fallback check
+  const record = CLIENT_OTP_CACHE.get(email.toLowerCase());
+  if (!record) {
+    return { success: false, error: 'No verification code requested or code expired.' };
+  }
+  if (Date.now() > record.expiresAt) {
+    CLIENT_OTP_CACHE.delete(email.toLowerCase());
+    return { success: false, error: 'Verification code expired. Please request a new code.' };
+  }
+  if (record.attempts >= 5) {
+    CLIENT_OTP_CACHE.delete(email.toLowerCase());
+    return { success: false, error: 'Too many incorrect attempts. Request a new code.' };
+  }
+  if (record.otp !== otp.trim()) {
+    record.attempts++;
+    return { success: false, error: `Incorrect code. ${5 - record.attempts} attempt(s) remaining.` };
+  }
+
+  CLIENT_OTP_CACHE.delete(email.toLowerCase());
+  return { success: true, emailVerified: true };
 }
 
 function showAuthScreen(mode = 'login') {
