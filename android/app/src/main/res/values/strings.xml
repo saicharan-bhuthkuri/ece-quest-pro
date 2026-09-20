@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ECE Quest Pro</string>
+    <string name="title_activity_main">ECE Quest Pro</string>
+    <string name="package_name">com.ecequestpro.app</string>
+    <string name="custom_url_scheme">com.ecequestpro.app</string>
+</resources>
