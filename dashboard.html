@@ -131,66 +131,118 @@
     }
 
     /* Mobile Responsive Dashboard Layout */
+    .mobile-student-cards {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .student-card-item {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+
+    .student-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .student-card-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #FFF;
+    }
+
+    .student-card-email {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--cyan);
+      word-break: break-all;
+      margin-bottom: 8px;
+    }
+
+    .student-card-detail {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .student-card-detail:last-child {
+      border-bottom: none;
+    }
+
     @media (max-width: 768px) {
       .admin-nav {
         height: auto;
-        padding: 12px 16px;
+        padding: 12px 14px;
         flex-wrap: wrap;
         gap: 10px;
       }
       .admin-container {
-        margin: 16px auto;
-        padding: 0 12px;
+        margin: 14px auto;
+        padding: 0 10px;
       }
       .page-header {
         flex-direction: column;
-        align-items: flex-start !important;
+        align-items: stretch !important;
         gap: 12px !important;
       }
       .page-header .btn {
         width: 100%;
         justify-content: center;
+        padding: 14px;
       }
       .page-title {
-        font-size: 1.4rem !important;
+        font-size: 1.35rem !important;
       }
       .page-subtitle {
         font-size: 0.8rem !important;
       }
       .metrics-summary-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        gap: 8px;
+        margin-bottom: 16px;
       }
       .metric-card {
-        padding: 14px 12px;
+        padding: 12px 10px;
       }
       .metric-label {
-        font-size: 0.62rem;
+        font-size: 0.6rem;
       }
       .metric-value {
-        font-size: 1.4rem;
+        font-size: 1.35rem;
       }
       .search-filter-bar {
         flex-direction: column;
+        gap: 8px;
       }
       .search-filter-bar input {
         max-width: 100% !important;
         width: 100%;
+        box-sizing: border-box;
       }
+      
+      /* Hide dense table on small screens in favor of touch-friendly cards */
       .table-container {
-        border-radius: var(--radius-sm);
-        margin: 0 -12px;
-        border-left: none;
-        border-right: none;
+        display: none !important;
       }
-      .admin-table th, 
-      .admin-table td {
-        padding: 10px 12px;
-        font-size: 0.78rem;
+      .mobile-student-cards {
+        display: flex !important;
       }
       .auth-card {
         padding: 24px 16px !important;
-        margin: 20px auto !important;
+        margin: 16px auto !important;
+        width: calc(100% - 20px) !important;
       }
     }
 
@@ -420,7 +472,7 @@
           </span>
         </div>
 
-        <!-- Registered Students Table -->
+        <!-- Registered Students Table (Desktop & Tablet) -->
         <div class="table-container">
           <table class="admin-table">
             <thead>
@@ -440,6 +492,11 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Registered Students Cards (Mobile Phones) -->
+        <div class="mobile-student-cards" id="users-cards">
+          ${renderUserCards(allUsers)}
+        </div>
       `;
 
       document.getElementById('btn-refresh-data').onclick = loadAdminDashboard;
@@ -453,8 +510,49 @@
           (u.college || '').toLowerCase().includes(query)
         );
         document.getElementById('users-tbody').innerHTML = renderUserRows(filtered);
+        document.getElementById('users-cards').innerHTML = renderUserCards(filtered);
         document.getElementById('user-count-label').textContent = `Showing ${filtered.length} student(s)`;
       };
+    }
+
+    function renderUserCards(users) {
+      if (users.length === 0) {
+        return `<div style="text-align: center; padding: 24px; color: var(--text-muted); background: var(--panel); border-radius: var(--radius-sm);">No registered students found.</div>`;
+      }
+
+      return users.map((u, i) => `
+        <div class="student-card-item">
+          <div class="student-card-header">
+            <div>
+              <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">#${i + 1}</span>
+              <div class="student-card-name">${escapeHtml(u.name)}</div>
+            </div>
+            <div>
+              ${u.emailVerified 
+                ? `<span class="badge-verified">✓ VERIFIED</span>` 
+                : `<span class="badge-unverified">✗ PENDING</span>`
+              }
+            </div>
+          </div>
+          <div class="student-card-email">${escapeHtml(u.email)}</div>
+          <div class="student-card-detail">
+            <span>Institution</span>
+            <span style="color: #FFF; font-weight: 500; text-align: right; max-width: 60%;">${escapeHtml(u.college || '—')}</span>
+          </div>
+          <div class="student-card-detail">
+            <span>Branch / Year</span>
+            <span style="color: var(--cyan);">${escapeHtml(u.branch || 'ECE')} • ${escapeHtml(u.year || '2nd Year')}</span>
+          </div>
+          <div class="student-card-detail">
+            <span>Progress (XP)</span>
+            <span style="font-family: var(--font-mono); font-weight: 700; color: var(--emerald);">${u.xp || 0} XP <span style="font-size: 0.72rem; color: var(--text-muted);">(${u.totalQuestions || 0} Qs)</span></span>
+          </div>
+          <div class="student-card-detail">
+            <span>Joined</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">${new Date(u.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          </div>
+        </div>
+      `).join('');
     }
 
     function renderUserRows(users) {
