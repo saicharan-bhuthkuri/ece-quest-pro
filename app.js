@@ -1191,9 +1191,30 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// Bottom Navigation Handler
+function setActiveTab(tabId) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const activeBtn = document.getElementById(tabId);
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+const tabHome = document.getElementById('tab-home');
+const tabQuiz = document.getElementById('tab-quiz');
+const tabLearn = document.getElementById('tab-learn');
+const tabLab = document.getElementById('tab-lab');
+const tabProfile = document.getElementById('tab-profile');
+
+if (tabHome) tabHome.onclick = () => { setActiveTab('tab-home'); showHome(); };
+if (tabQuiz) tabQuiz.onclick = () => { setActiveTab('tab-quiz'); showQuizSetup(); };
+if (tabLearn) tabLearn.onclick = () => { setActiveTab('tab-learn'); showLearn(); };
+if (tabLab) tabLab.onclick = () => { setActiveTab('tab-lab'); showLab(); };
+if (tabProfile) tabProfile.onclick = () => { setActiveTab('tab-profile'); showProfile(); };
+
 // Global Nav Listeners
-document.getElementById('brand-home-btn').onclick = showHome;
-document.getElementById('nav-home-btn').onclick = showHome;
+document.getElementById('brand-home-btn').onclick = () => { setActiveTab('tab-home'); showHome(); };
+const navHomeBtn = document.getElementById('nav-home-btn');
+if (navHomeBtn) navHomeBtn.onclick = () => { setActiveTab('tab-home'); showHome(); };
 
 // Initialize
 showHome();
+
