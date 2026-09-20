@@ -404,12 +404,37 @@ function showAuthScreen(mode = 'login') {
   // Handle Login Submit
   const loginForm = document.getElementById('auth-form-login');
   if (loginForm) {
-    loginForm.onsubmit = (e) => {
+    loginForm.onsubmit = async (e) => {
       e.preventDefault();
       const alertBox = document.getElementById('auth-alert-container');
       const email = document.getElementById('login-email').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
 
+      // First attempt cloud Turso DB login
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setCurrentUser(email);
+          state = data.progress || getDefaultUserData(data.user.name, email);
+          state.profile = { ...state.profile, ...(data.user || {}) };
+          saveUserData();
+          showToast(`Welcome back, ${state.profile.name}!`);
+          startApp();
+          return;
+        } else if (res.status === 400 || res.status === 401) {
+          alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} ${escapeHtml(data.error || 'Invalid credentials')}</div>`;
+          return;
+        }
+      } catch (err) {
+        // Fallback to local storage if offline/APK standalone
+      }
+
+      // Offline / Local fallback check
       const users = getUsers();
       if (!users[email]) {
         alertBox.innerHTML = `<div class="auth-alert error">${ICONS.cross} No account found with this email. Please register first.</div>`;
@@ -533,7 +558,23 @@ function showAuthScreen(mode = 'login') {
         return;
       }
 
-      // Email verified! Save user account
+      // Try to register user in Turso DB
+      try {
+        await fetch('/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: registrationState.email,
+            password: registrationState.password,
+            name: registrationState.name,
+            college: registrationState.college
+          })
+        });
+      } catch (err) {
+        console.log("Registered locally:", err);
+      }
+
+      // Email verified! Save user account locally
       const users = getUsers();
       users[registrationState.email] = {
         email: registrationState.email,
