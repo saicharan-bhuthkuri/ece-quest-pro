@@ -387,6 +387,11 @@ function showAuthScreen(mode = 'login') {
             ? `New student? <span class="auth-link" id="link-goto-register">Create an account</span>`
             : `Already registered? <span class="auth-link" id="link-goto-login">Sign in</span>`
           }
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(30, 52, 82, 0.4); display: flex; justify-content: center; gap: 16px; font-size: 0.75rem;">
+            <a href="landing.html" style="color: var(--cyan); text-decoration: none;">Download APK</a>
+            <span style="color: var(--text-muted);">•</span>
+            <a href="dashboard.html" style="color: var(--text-muted); text-decoration: none;">Admin Portal</a>
+          </div>
         </div>
       </div>
     </div>
