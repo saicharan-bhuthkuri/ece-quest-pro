@@ -136,6 +136,73 @@
       background-clip: text;
       color: transparent;
     }
+
+    /* Mobile Responsive Optimizations */
+    @media (max-width: 640px) {
+      .landing-nav {
+        height: auto;
+        padding: 14px 16px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+      .landing-nav-links {
+        gap: 8px;
+      }
+      .landing-nav-links .btn {
+        padding: 7px 12px;
+        font-size: 0.78rem;
+      }
+      .landing-hero {
+        padding: 36px 16px 24px;
+      }
+      .landing-hero h1 {
+        font-size: 1.95rem !important;
+        line-height: 1.25;
+      }
+      .landing-hero p {
+        font-size: 0.92rem !important;
+        margin-bottom: 24px !important;
+      }
+      .apk-card {
+        padding: 24px 16px;
+        margin: 0 auto 36px;
+        border-radius: var(--radius-md);
+      }
+      .apk-card h2 {
+        font-size: 1.3rem !important;
+      }
+      .dl-btn {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 14px 20px;
+        font-size: 0.95rem;
+      }
+      .app-screen-mock {
+        padding: 10px 12px;
+        font-size: 0.78rem;
+      }
+      .feature-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 0 16px;
+        margin-bottom: 40px;
+      }
+      .feature-box {
+        padding: 18px 16px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .landing-nav-links {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .landing-hero h1 {
+        font-size: 1.7rem !important;
+      }
+    }
   </style>
 </head>
 <body>
