@@ -1822,16 +1822,27 @@ const tabLearn = document.getElementById('tab-learn');
 const tabLab = document.getElementById('tab-lab');
 const tabProfile = document.getElementById('tab-profile');
 
-if (tabHome) tabHome.onclick = () => { setActiveTab('tab-home'); showHome(); };
-if (tabQuiz) tabQuiz.onclick = () => { setActiveTab('tab-quiz'); showQuizSetup(); };
-if (tabLearn) tabLearn.onclick = () => { setActiveTab('tab-learn'); showLearn(); };
-if (tabLab) tabLab.onclick = () => { setActiveTab('tab-lab'); showLab(); };
-if (tabProfile) tabProfile.onclick = () => { setActiveTab('tab-profile'); showProfile(); };
+// Guard: Tab navigation requires authenticated user
+function requireAuth(action) {
+  if (!getCurrentUser()) {
+    showAuthScreen('login');
+    return;
+  }
+  action();
+}
+
+if (tabHome) tabHome.onclick = () => requireAuth(() => { setActiveTab('tab-home'); showHome(); });
+if (tabQuiz) tabQuiz.onclick = () => requireAuth(() => { setActiveTab('tab-quiz'); showQuizSetup(); });
+if (tabLearn) tabLearn.onclick = () => requireAuth(() => { setActiveTab('tab-learn'); showLearn(); });
+if (tabLab) tabLab.onclick = () => requireAuth(() => { setActiveTab('tab-lab'); showLab(); });
+if (tabProfile) tabProfile.onclick = () => requireAuth(() => { setActiveTab('tab-profile'); showProfile(); });
 
 // Global Nav Listeners
-document.getElementById('brand-home-btn').onclick = () => { setActiveTab('tab-home'); showHome(); };
+if (document.getElementById('brand-home-btn')) {
+  document.getElementById('brand-home-btn').onclick = () => requireAuth(() => { setActiveTab('tab-home'); showHome(); });
+}
 const navHomeBtn = document.getElementById('nav-home-btn');
-if (navHomeBtn) navHomeBtn.onclick = () => { setActiveTab('tab-home'); showHome(); };
+if (navHomeBtn) navHomeBtn.onclick = () => requireAuth(() => { setActiveTab('tab-home'); showHome(); });
 
-// Initialize App: Check Auth First
+// Initialize App: Mandatory Login First
 startApp();

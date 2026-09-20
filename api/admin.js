@@ -24,8 +24,8 @@ module.exports = async function handler(req, res) {
       const username = (req.body?.username || '').trim();
       const password = (req.body?.password || '').trim();
 
-      const validUser = process.env.ADMIN_USERNAME || 'rushanth';
-      const validPass = process.env.ADMIN_PASSWORD || 'rushanth@admin';
+      const validUser = process.env.ADMIN_USERNAME || 'admin';
+      const validPass = process.env.ADMIN_PASSWORD || 'admin@123';
 
       // Check admin credentials
       if (username === validUser && password === validPass) {
